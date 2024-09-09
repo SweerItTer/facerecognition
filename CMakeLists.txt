@@ -4,13 +4,43 @@ project(FaceRecognition VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Linux-specific flags
+    add_definitions(-g -O0 -ggdb -gdwarf -funwind-tables -rdynamic)
+    add_definitions(-Wno-write-strings -Wno-return-type)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    # Windows-specific flags (adjust for MSVC or MinGW)
+    if (MSVC)
+        # MSVC-specific options
+        add_definitions(/Zi /Od)  # Equivalent to -g -O0
+        add_definitions(/W3)      # Warning level 3
+        add_definitions(/wd4996)  # Disable specific warning (deprecated functions)
+    elseif (MINGW)
+        # MinGW-specific options (if you're using GCC under Windows)
+        add_definitions(-g -O0)
+        add_definitions(-Wno-write-strings -Wno-return-type)
+    endif()
+endif()
+
+if (MSVC)
+    # 忽略警告 C4819
+    add_compile_options(/wd4819)
+endif()
+
+
 # Set paths to dependencies
-# set(OpenCV_DIR "D:/Program/OpenCV/opencv/build/x64/vc15/lib")
+set(OpenCV_DIR "D:/Program/OpenCV/opencv/build/x64/vc15/lib")
 set(onnxDir "D:/Program/onnxruntime-win-x64-1.10.0/")
 set(FFMPEG_PREFIX_PATH "C:/ffmpeg")
 
 # Find required packages
 find_package(OpenCV REQUIRED)
+
+# 查找并添加 Qt5 库
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
+
+# 添加包含目录 (如果 Qt5_INCLUDE_DIRS 没有自动包含)
+include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
 
 # If onnxDir is provided, set include and lib paths
 if (onnxDir)
@@ -29,17 +59,17 @@ else()
 endif()
 
 # Glob the source and header files
-file(GLOB_RECURSE Yolo_source "./Yolov8/*.cpp", "./Yolov8/*.c")
-file(GLOB_RECURSE Ffmpeg_source "./Ffmpeg/*.cpp", "./Ffmpeg/*.c")
-file(GLOB_RECURSE Facenet_source "./Facenet/*.cpp", "./Facenet/*.c")
-file(GLOB_RECURSE UI_source "./UI/*.cpp", "./UI/*.c")
-file(GLOB_RECURSE Sql_source "./Sql/*.cpp", "./Sql/*.c")
+file(GLOB_RECURSE Yolo_source "./Yolov8/*.cpp" "./Yolov8/*.c")
+file(GLOB_RECURSE Ffmpeg_source "./Ffmpeg/*.cpp" "./Ffmpeg/*.c")
+file(GLOB_RECURSE Facenet_source "./Facenet/*.cpp" "./Facenet/*.c")
+file(GLOB_RECURSE UI_source "./UI/*.cpp" "./UI/*.c")
+file(GLOB_RECURSE Sql_source "./Sql/*.cpp" "./Sql/*.c")
 
-file(GLOB_RECURSE Yolo_header "./Yolov8/*.h", "./Yolov8/*.hpp")
-file(GLOB_RECURSE Ffmpeg_header "./Ffmpeg/*.h", "./Ffmpeg/*.hpp")
-file(GLOB_RECURSE Facenet_header "./Facenet/*.h", "./Facenet/*.hpp")
-file(GLOB_RECURSE UI_header "./UI/*.h", "./UI/*.hpp")
-file(GLOB_RECURSE Sql_header "./Sql/*.h", "./Sql/*.hpp")
+file(GLOB_RECURSE Yolo_header "./Yolov8/*.h" "./Yolov8/*.hpp")
+file(GLOB_RECURSE Ffmpeg_header "./Ffmpeg/*.h" "./Ffmpeg/*.hpp")
+file(GLOB_RECURSE Facenet_header "./Facenet/*.h" "./Facenet/*.hpp")
+file(GLOB_RECURSE UI_header "./UI/*.h" "./UI/*.hpp")
+file(GLOB_RECURSE Sql_header "./Sql/*.h" "./Sql/*.hpp")
 
 # Combine sources and headers
 set(PROJECT_SOURCES
@@ -55,20 +85,6 @@ set(PROJECT_SOURCES
     ${UI_header}
     ${Sql_header}
 )
-
-
-# Include directories for headers
-# include_directories(
-#     ${OpenCV_INCLUDE_DIRS}
-#     ${FFMPEG_PREFIX_PATH}/include
-#     ${onnxDir}/include
-# )
-
-# Link directories for libraries
-# link_directories(
-#     ${onnxDir}/lib
-#     ${FFMPEG_PREFIX_PATH}/lib
-# )
 
 # Add executable target
 add_executable(FaceRecognition ${PROJECT_SOURCES})

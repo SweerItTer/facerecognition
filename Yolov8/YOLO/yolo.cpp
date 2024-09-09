@@ -369,11 +369,11 @@ void Yolo::predictImage(Ort::Session *session, cv::Mat m)
 void Yolo::normalized(cv::Mat input_tensor, std::vector<float> &output_data)
 {
     std::size_t counter = 0;
-    for (unsigned k = 0; k < 3; k++)
+    for (int k = 0; k < 3; k++)
     {
-        for (unsigned i = 0; i < input_tensor.rows; i++)
+        for (int i = 0; i < input_tensor.rows; i++)
         {
-            for (unsigned j = 0; j < input_tensor.cols; j++)
+            for (int j = 0; j < input_tensor.cols; j++)
             {
                 output_data[counter++]=static_cast<float>(input_tensor.at<cv::Vec3b>(i, j)[k]) / 255.0;
             }
