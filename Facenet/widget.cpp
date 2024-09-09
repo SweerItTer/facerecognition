@@ -1,4 +1,5 @@
-#define _use_dnn false //opencv dnn无法加载模型(结构不允许)
+#define _use_dnn false 
+//opencv dnn无法加载模型(结构不允许)
 
 #include "widget.h"
 #include <opencv2/opencv.hpp>
@@ -88,7 +89,8 @@ std::vector<float> Widget::outputs(const std::string& img_path, const std::vecto
 
 	cv::Mat img_input;
 	//重置大小
-	img_input = resizeImage(image, cv::Size(inputTensorShape[2], inputTensorShape[3]), true);
+	img_input = resizeImage(image, cv::Size(static_cast<int>(inputTensorShape[2]),
+											static_cast<int>(inputTensorShape[3])), true);
 	//归一化
 	img_input = preprocess_input(img_input);
 	// 将预处理后的图像转换为输入向量

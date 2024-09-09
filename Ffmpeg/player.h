@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include <iostream>
-#include <playthread.h>
+#include "playthread.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Player; }
