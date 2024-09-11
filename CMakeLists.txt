@@ -1,8 +1,18 @@
-cmake_minimum_required(VERSION 3.5)
+﻿cmake_minimum_required(VERSION 3.5)
 project(FaceRecognition VERSION 0.1 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 查找并添加 Qt5 库
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Charts PrintSupport)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Charts PrintSupport)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Linux-specific flags
@@ -27,7 +37,6 @@ if (MSVC)
     add_compile_options(/wd4819)
 endif()
 
-
 # Set paths to dependencies
 set(OpenCV_DIR "D:/Program/OpenCV/opencv/build/x64/vc15/lib")
 set(onnxDir "D:/Program/onnxruntime-win-x64-1.10.0/")
@@ -35,9 +44,7 @@ set(FFMPEG_PREFIX_PATH "C:/ffmpeg")
 
 # Find required packages
 find_package(OpenCV REQUIRED)
-
-# 查找并添加 Qt5 库
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 # 添加包含目录 (如果 Qt5_INCLUDE_DIRS 没有自动包含)
 include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
@@ -71,6 +78,16 @@ file(GLOB_RECURSE Facenet_header "./Facenet/*.h" "./Facenet/*.hpp")
 file(GLOB_RECURSE UI_header "./UI/*.h" "./UI/*.hpp")
 file(GLOB_RECURSE Sql_header "./Sql/*.h" "./Sql/*.hpp")
 
+# UI 文件
+set(FORMS
+    ./UI/mainwindow.ui
+)
+
+# 资源文件
+set(RESOURCES
+    ./UI/Resources/Resources.qrc
+)
+
 # Combine sources and headers
 set(PROJECT_SOURCES
     ${Yolo_source}
@@ -84,7 +101,13 @@ set(PROJECT_SOURCES
     ${Facenet_header}
     ${UI_header}
     ${Sql_header}
-)
+
+    main.cpp
+    script.cpp
+    script.h
+    ${RESOURCES}
+    ${FORMS}
+    )
 
 # Add executable target
 add_executable(FaceRecognition ${PROJECT_SOURCES})
@@ -99,6 +122,8 @@ target_link_libraries(FaceRecognition PRIVATE
     avutil
     swscale
     swresample
+    Qt${QT_VERSION_MAJOR}::Charts
+    Qt${QT_VERSION_MAJOR}::PrintSupport
 )
 
 # Optionally, set output directory for the executable
