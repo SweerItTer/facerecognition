@@ -24,7 +24,6 @@
 #pragma execution_character_set("UTF-8")
 
 
-
 typedef struct _DCSP_RESULT {
     int classId; // 类别ID
     float confidence;// 置信度
@@ -80,7 +79,6 @@ signals:
     void signal_mat(cv::Mat mat);
     void frame_mat(cv::Mat mat);
 
-public slots:
 };
 
 #endif // YOLO_H
