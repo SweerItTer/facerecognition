@@ -7,6 +7,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+	callback = new Script(this);
+
     setBarChart();
     setBarChart_2();
     setProgressBar();
@@ -190,8 +192,8 @@ MainWindow::MainWindow(QWidget *parent)
     // 摄像头界面
     QImage camera_img (QString(":/lb_camaretest.png")) ;
     QPixmap camera_pix = QPixmap::fromImage(camera_img);
-    camera_pix = camera_pix.scaled(ui->lb_camera->size(),Qt::KeepAspectRatio);
-    ui->lb_camera->setScaledContents(true);
+//    camera_pix = camera_pix.scaled(ui->lb_camera->size(),Qt::KeepAspectRatio);
+//    ui->lb_camera->setScaledContents(true);
     ui->lb_camera->setPixmap(camera_pix);
     ui->lb_camera->setStyleSheet(QString("QLabel{"
                                          "background-color: rgb(255, 255, 255);"
@@ -218,7 +220,7 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
-
+	delete callback;
 }
 
 // 重绘窗口

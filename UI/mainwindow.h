@@ -35,7 +35,7 @@ public:
     void calculateFirstControlPoints(double *&result, const double *rhs, int n);
     QVector<QPointF> randomNumbers(int n, int min, int max);
 
-
+	Ui::MainWindow *ui;
 private slots:
     virtual void paintEvent(QPaintEvent *event) override; // 重绘窗口
     virtual void mousePressEvent(QMouseEvent *event) override;
@@ -66,8 +66,8 @@ private slots:
 	void on_but_sure_clicked();
 
 private:
-    Ui::MainWindow *ui;
-    bool m_leftMousePressed = false; //鼠标是否点中标题栏，是true，否false
+
+	bool m_leftMousePressed = false; //鼠标是否点中标题栏，是true，否false
     QPoint m_StartPoint ; // 窗口的全局位置
 
     QString but_on = QString("QPushButton{background-color: rgb(62, 69, 176);}");// 打开
@@ -78,6 +78,6 @@ private:
 
 
 
-	Script *callback;
+	Script *callback = nullptr;
 };
 #endif // MAINWINDOW_H
