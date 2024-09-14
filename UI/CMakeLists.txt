@@ -24,10 +24,6 @@ find_package(OpenCV REQUIRED)
 
 # 项目源文件
 set(SOURCES
-<<<<<<< HEAD
-=======
-    main.cpp
->>>>>>> 9f4521b430aaffd1280eafd7cda72292bff90fc8
     mainwindow.cpp
     qcustomplot.cpp
 )

@@ -7,11 +7,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-<<<<<<< HEAD
 	callback = new Script(this);
 
-=======
->>>>>>> 9f4521b430aaffd1280eafd7cda72292bff90fc8
     setBarChart();
     setBarChart_2();
     setProgressBar();
