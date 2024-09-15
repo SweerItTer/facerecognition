@@ -36,7 +36,8 @@ public:
 	void Start();
 
 signals:
-	void framesSignal(QPixmap image);
+	void pixframesSignal(QPixmap image);
+	void cvframesSignal(cv::Mat image);
 private:
 	std::string url_;
 	bool abord_;

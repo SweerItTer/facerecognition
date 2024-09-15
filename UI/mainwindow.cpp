@@ -1,6 +1,9 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#define MYLOG qDebug() << "[" << __FILE__ << ":" << __LINE__ << "]"
+
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -219,8 +222,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    delete ui;
 	delete callback;
+    delete ui;
+
 }
 
 // 重绘窗口
@@ -958,6 +962,30 @@ void MainWindow::on_pushButton_clicked()
 // ---------------- HJJ --------------- //
 void MainWindow::on_but_sure_clicked()
 {
-	callback->ensureEnter(ui->le_rtsp->text().toStdString());
+	std::string rtsp_url = ui->le_rtsp->text().toStdString();
+	std::string modelPath = ui->le_onnx->text().toStdString();
+	int ret = callback->ensureEnter(rtsp_url, modelPath);
+	if(ret < 0){
+		MYLOG << "Fail to created thread";
+	}
+}
+
+
+void MainWindow::on_but_onnx_clicked()
+{
+	// 打开文件对话框
+	QString fileName = QFileDialog::getOpenFileName(
+		this,                           // 父窗口
+		tr("Open ONNX File"),           // 对话框标题
+		"../../",                             // 默认路径
+		tr("ONNX Files (*.onnx);;All Files (*)") // 文件过滤器
+	);
+	// 检查用户是否选择了文件
+	if (!fileName.isEmpty()) {
+		ui->le_onnx->setText(fileName);
+	} else {
+		// 如果用户没有选择文件，可以处理这种情况
+		QMessageBox::warning(this, tr("No File Selected"), tr("No ONNX file was selected."));
+	}
 }
 

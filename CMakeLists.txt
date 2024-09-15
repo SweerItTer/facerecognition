@@ -46,7 +46,7 @@ set(FFMPEG_PREFIX_PATH "C:/ffmpeg")
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-# 添加包含目录 (如果 Qt5_INCLUDE_DIRS 没有自动包含)
+# include qt lib (if Qt5_INCLUDE_DIRS donot include)
 include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
 
 # If onnxDir is provided, set include and lib paths
@@ -105,6 +105,7 @@ set(PROJECT_SOURCES
     main.cpp
     script.cpp
     script.h
+    imageprocessor.h
     ${RESOURCES}
     ${FORMS}
     )

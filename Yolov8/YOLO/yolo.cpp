@@ -8,15 +8,15 @@ Yolo::Yolo(QObject *parent)
     :QObject(parent)
     , capture(new cv::VideoCapture)
 {
-
     timer = new QTimer ;
     connect(timer,&QTimer::timeout,this,&Yolo::updateFrame);
 }
 Yolo::~Yolo()
 {
     delete capture;
+	delete env;
+	delete session;
 }
-
 
 
 // 加载ONNX模型文件
@@ -27,9 +27,8 @@ bool Yolo::loadModel(QString filename)
         return false; // 如果文件不存在，则直接返回
     }else{
         MYLOG<<"加载ONNX模型-开始";
-        Ort::Env env;
-//        const ORTCHAR_T* onnxfile = filename.toStdWString().c_str();
-        Ort::Session session(env,filename.toStdWString().c_str(),Ort::SessionOptions{nullptr});
+		env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Default");;
+		session = new Ort::Session(*env, filename.toStdWString().c_str(), Ort::SessionOptions{nullptr});
         MYLOG<<"创建会话-成功";
 
         // 检查是否有可用的CUDA设备（即检查是否可以使用GPU进行加速）
@@ -46,49 +45,40 @@ bool Yolo::loadModel(QString filename)
             emit signal_str("未检测到可用GPU，将使用CPU推理！");
 
         emit signal_str("**********模型信息**********");
-        printInputModel(&session);
-        printOutputModel(&session);
+		printInputModel(session);
+		printOutputModel(session);
         MYLOG<<"模型加载成功，返回true\n";
         return true; // 模型加载成功，返回true
     }
 }
 
 // 运行模型
-void Yolo::runModel(QString o, QString f ,cv::Mat m,QString type)
+
+void Yolo::runModel(cv::Mat m, QString type ,cv::Mat &retImg)
 {
+	MYLOG<<"开始运行模型";
+	filetype = type;//文件类型
 
-	//  为什么在运行了 loadModel(onnxfile) 后还要在这里出现加载一次?
-    if(!QFile::exists(o)){// 检查模型是否存在
-       emit signal_str("**********未选中模型**********");
-        return; // 如果文件不存在，则直接返回
-    }else{
-        MYLOG<<"开始运行模型";
-        filetype = type;//文件类型
-        onnxpath = o;//模型路径
-        Ort::Env env;
-        Ort::Session session(env,onnxpath.toStdWString().c_str(),Ort::SessionOptions{nullptr});
+	if(filetype == "image"){
+		MYLOG<<"对图像进行识别";
+		cv::Mat final_mat = PreprocessImage(m);
+		retImg = sessionRun(session,final_mat,m);
+//		emit signal_mat(mat);
 
-        if(filetype == "image"){
-            MYLOG<<"对图像进行识别";
-            cv::Mat final_mat = PreprocessImage(m);
-            cv::Mat mat = sessionRun(&session,final_mat,m);
-            emit signal_mat(mat);
-
-        }else if(filetype == "video"){
-            MYLOG<<"对视频进行识别";
+	}else if(filetype == "video"){
+		MYLOG<<"对视频进行识别";
 //            double frameRate = capture->get(cv::CAP_PROP_FPS);
 //            timer->start(1000/frameRate); // 根据帧率开始播放
-            timer->start(100);
-        }else{
-            MYLOG<<"对摄像头进行识别";
-            capture->open(0);
-            timer->start(100);
-        }
-    }
+		timer->start(100);
+	}else{
+		MYLOG<<"对摄像头进行识别";
+		capture->open(0);
+		timer->start(100);
+	}
 }
 
 //停止检测
-void Yolo::stopModel(QString o, QString f ,cv::Mat m,QString type)
+void Yolo::stopModel()
 {
     if(filetype == "video"){
         MYLOG<<"对视频进行识别";

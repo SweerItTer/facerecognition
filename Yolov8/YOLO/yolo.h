@@ -38,8 +38,9 @@ public:
     explicit Yolo(QObject *parent = nullptr);
     ~Yolo();
     bool loadModel(QString onnxfile);//检测模型
-    void runModel(QString o,QString f ,cv::Mat m,QString type);//运行模型
-    void stopModel(QString o, QString f ,cv::Mat m,QString type);//停止检测
+//    void runModel(QString o,QString f ,cv::Mat m,QString type);//运行模型
+	void runModel(cv::Mat m, QString type, cv::Mat &retImg);
+	void stopModel();//停止检测
     void updateFrame();
     void Capture (QString c);
 
@@ -73,7 +74,8 @@ private:
     int fixed_w ;
     int fixed_h ;
 
-
+	Ort::Session *session = nullptr;
+	Ort::Env *env = nullptr;
 signals:
     void signal_str(QString str);//发给mainwidget的信号
     void signal_mat(cv::Mat mat);

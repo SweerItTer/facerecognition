@@ -97,14 +97,15 @@ void PlayThread::run(){
 
 	// 声明分析用的mat和显示用的img
 	cv::Mat mat_;
-	QPixmap img;
+	//QPixmap img;
 	while(!abord_){
 		AVFrame *frame = video_frame_queue.Pop(100);//取出帧
 		if (frame){
 //			qDebug() << frame->width << "x" << frame->height << "\n";
 			AVFrameToCVMat(frame, mat_);//转换为cv::Mat
-			img = CVMatToQImage(mat_);//转换为qt支持的图像
-			emit framesSignal(img); // 发射信号，传递图像
+			//img = CVMatToQImage(mat_);//转换为qt支持的图像
+			//emit pixframesSignal(img);
+			emit cvframesSignal(mat_); // 发射信号，传递图像
 		}
 		av_frame_unref(frame);
 		av_frame_free(&frame); // 使用完毕后释放frame
