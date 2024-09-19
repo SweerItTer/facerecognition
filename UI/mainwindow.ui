@@ -868,7 +868,7 @@
         <item row="2" column="2" colspan="2">
          <widget class="QLineEdit" name="le_onnx">
           <property name="text">
-           <string>F:\Facial recognition system\FacialRecognition\FacialRecognition\Resources\best.onnx</string>
+           <string>D:/Program/project/gitee/facerecognition/Yolov8/sourse/best.onnx</string>
           </property>
          </widget>
         </item>

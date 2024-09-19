@@ -35,12 +35,28 @@ void Script::Configurate(){
 		}, Qt::QueuedConnection);
 	});
 	std::cout << "Processor set callback." << std::endl;
+	startProcessingTimer();
 }
 
-//bool Script::fileExists(const std::string& fileName) {
-//	std::ifstream file(fileName);
-//	return file.good();
-//}
+void Script::startProcessingTimer() {
+	processingTimer = new QTimer(this);
+	connect(processingTimer, &QTimer::timeout, this, &Script::processNextFrame);
+	processingTimer->start(20); // 每50ms处理一帧，可以根据需要调整
+}
+
+void Script::processNextFrame() {
+	cv::Mat frame;
+	{// 取出帧
+		QMutexLocker locker(&queueMutex);
+		if (!frameQueue.isEmpty()) {
+			frame = frameQueue.dequeue();
+		}
+	}
+	// 处理帧
+	if (!frame.empty()) {
+		imageProcessor->setImage(frame);
+	}
+}
 
 int Script::ensureEnter(std::string rtsp_url, std::string modelPath){
 	bool is_rtspurl = string_compare(rtsp_url, "rtsp://");
@@ -52,7 +68,7 @@ int Script::ensureEnter(std::string rtsp_url, std::string modelPath){
 		std::cerr << "model do not exist." << std::endl;
 		return -1;
 	}
-	if ( is_rtspurl ) {
+	if ( is_rtspurl || 1) {
 		if (p_thread) {
 			p_thread->Stop();
 			while(!p_thread->isFinished()){
@@ -81,8 +97,11 @@ void Script::prossPixSignal(QPixmap image){
 	mw->ui->lb_camera->setPixmap(image.scaled(labelSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
 
-void Script::prossCVSignal(cv::Mat image){
-	imageProcessor->setImage(image);
+void Script::prossCVSignal(cv::Mat image) {
+	QMutexLocker locker(&queueMutex);
+	if (frameQueue.size() < 20) { // 限制队列大小，防止内存溢出
+		frameQueue.enqueue(image.clone());
+	}
 }
 
 void Script::updateUI(const QPixmap& image) {

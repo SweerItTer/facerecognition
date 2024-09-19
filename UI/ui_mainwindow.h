@@ -583,7 +583,7 @@ public:
         bl_onnx->setText(QApplication::translate("MainWindow", "\350\257\206\345\210\253\346\250\241\345\236\213\346\226\207\344\273\266\357\274\232", nullptr));
         but_rtsp->setText(QApplication::translate("MainWindow", "\344\277\256\346\224\271", nullptr));
         lb_storagefile->setText(QApplication::translate("MainWindow", "\345\275\225\345\205\245\344\277\241\346\201\257\345\255\230\345\202\250\344\275\215\347\275\256\357\274\232", nullptr));
-        le_onnx->setText(QApplication::translate("MainWindow", "F:\\Facial recognition system\\FacialRecognition\\FacialRecognition\\Resources\\best.onnx", nullptr));
+		le_onnx->setText(QApplication::translate("MainWindow", "D:\\Program\\project\\gitee\\facerecognition\\Yolov8\\sourse\\best.onnx", nullptr));
         te_onnxmessage->setHtml(QApplication::translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

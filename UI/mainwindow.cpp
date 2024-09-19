@@ -20,8 +20,8 @@ MainWindow::MainWindow(QWidget *parent)
     setSplineChart();
 
     // 窗口
-    this->setWindowFlags(Qt::FramelessWindowHint);      //隐藏最大最小化等按键
-    this->setAttribute(Qt::WA_TranslucentBackground);         //设置窗口透明化
+//    this->setWindowFlags(Qt::FramelessWindowHint);      //隐藏最大最小化等按键
+//    this->setAttribute(Qt::WA_TranslucentBackground);         //设置窗口透明化
     this->setStyleSheet(QString("QMainWindow{"
                                  "background-color:rgb(236, 237, 255);"
                                  "border-radius: 10px;"

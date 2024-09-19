@@ -26,6 +26,12 @@ public:
 
 private:
 	PlayThread *p_thread = nullptr;
+	std::string modelPath;
+
+	MainWindow *mw = nullptr;
+	Yolo *yolo = nullptr;
+	Ort::Session *session = nullptr;
+	ImageProcessor *imageProcessor = nullptr;
 
 	void Configurate();
 	bool string_compare(const std::string& s, const std::string& prefix){
@@ -36,12 +42,13 @@ private:
 	void prossCVSignal(cv::Mat image);
 	void updateUI(const QPixmap& image);
 
-	std::string modelPath;
 
-	MainWindow *mw = nullptr;
-	Yolo *yolo = nullptr;
-	Ort::Session *session = nullptr;
-	ImageProcessor *imageProcessor = nullptr;
+	void startProcessingTimer();
+	void processNextFrame();
+
+	QQueue<cv::Mat> frameQueue;
+	QMutex queueMutex;
+	QTimer *processingTimer;
 };
 
 #endif // SCRIPT_H

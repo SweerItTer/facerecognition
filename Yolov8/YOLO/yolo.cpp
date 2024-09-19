@@ -47,7 +47,7 @@ bool Yolo::loadModel(QString filename)
         emit signal_str("**********模型信息**********");
 		printInputModel(session);
 		printOutputModel(session);
-        MYLOG<<"模型加载成功，返回true\n";
+//        MYLOG<<"模型加载成功，返回true\n";
         return true; // 模型加载成功，返回true
     }
 }
@@ -56,11 +56,11 @@ bool Yolo::loadModel(QString filename)
 
 void Yolo::runModel(cv::Mat m, QString type ,cv::Mat &retImg)
 {
-	MYLOG<<"开始运行模型";
+//	MYLOG<<"开始运行模型";
 	filetype = type;//文件类型
 
 	if(filetype == "image"){
-		MYLOG<<"对图像进行识别";
+//		MYLOG<<"对图像进行识别";
 		cv::Mat final_mat = PreprocessImage(m);
 		retImg = sessionRun(session,final_mat,m);
 //		emit signal_mat(mat);
@@ -337,11 +337,12 @@ cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
                           cv::Scalar(0, 255, 0), //颜色
                           2 * aspect_mat);//粗细
             //文字
-            const char* textChar = QString("face %1").arg(threshold).toLocal8Bit().constData();
-            cv::putText(mat, textChar,
+			std::string textChar = "face %f" + std::to_string(threshold);
+
+			cv::putText(mat, textChar,
                         cv::Point(x_1,y_1-h-2 * aspect_mat), // 文字的起始位置
                         cv::FONT_HERSHEY_SIMPLEX,
-                        2.0 * aspect_mat/4, // 字体大小
+						2.0 * aspect_mat/4, // 字体大小
                         cv::Scalar(0, 255, 0), // 字体颜色
                         1 * aspect_mat); // 字体粗细
         }
