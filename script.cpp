@@ -41,7 +41,7 @@ void Script::Configurate(){
 void Script::startProcessingTimer() {
 	processingTimer = new QTimer(this);
 	connect(processingTimer, &QTimer::timeout, this, &Script::processNextFrame);
-	processingTimer->start(20); // 每50ms处理一帧，可以根据需要调整
+	processingTimer->start(5); // 每50ms处理一帧，可以根据需要调整
 }
 
 void Script::processNextFrame() {
@@ -99,14 +99,16 @@ void Script::prossPixSignal(QPixmap image){
 
 void Script::prossCVSignal(cv::Mat image) {
 	QMutexLocker locker(&queueMutex);
-	if (frameQueue.size() < 20) { // 限制队列大小，防止内存溢出
-		frameQueue.enqueue(image.clone());
+	if (frameQueue.size() < 60) { // 限制队列大小，防止内存溢出
+		frameQueue.enqueue(std::move(image));
 	}
 }
 
 void Script::updateUI(const QPixmap& image) {
-	QPixmap scaledPixmap = image.scaled(mw->ui->lb_camera->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-	mw->ui->lb_camera->setPixmap(scaledPixmap);
+	//QPixmap scaledPixmap = image.scaled(mw->ui->lb_camera->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	// mw->ui->lb_camera->setPixmap(scaledPixmap);
+	mw->ui->lb_camera->setPixmap(image);
+
 }
 
 

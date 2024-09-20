@@ -9,10 +9,11 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # 查找并添加 Qt5 库
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Charts PrintSupport)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Charts PrintSupport)
+find_package(Qt5 REQUIRED COMPONENTS Widgets Charts PrintSupport)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Linux-specific flags
@@ -123,11 +124,15 @@ target_link_libraries(FaceRecognition PRIVATE
     avutil
     swscale
     swresample
-    Qt${QT_VERSION_MAJOR}::Charts
-    Qt${QT_VERSION_MAJOR}::PrintSupport
+    Qt5::Core
+    Qt5::Widgets
+    Qt5::Charts
+    Qt5::PrintSupport
 )
 
 # Optionally, set output directory for the executable
 set_target_properties(FaceRecognition PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
+
+install(TARGETS FaceRecognition DESTINATION bin)

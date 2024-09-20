@@ -188,7 +188,7 @@ cv::Mat Yolo::PreprocessImage(cv::Mat m)
 //运行模型，画框
 cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
 {
-    MYLOG << "运行模型-开始";
+    // MYLOG << "运行模型-开始";
     // 从数据值创建输入张量对象
     //输入节点的数值相乘 1*3*640*640
     input_tensor_size = input_node_dims[0]*input_node_dims[1]*
@@ -225,7 +225,7 @@ cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
                                                           num_output_nodes);        // 输出张量数量 1
 
 
-    MYLOG << "运行模型-结束";
+    // MYLOG << "运行模型-结束";
 
 //    MYLOG << "画框-开始";
     //输出节点的数值相乘 1*84*8400
@@ -347,7 +347,7 @@ cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
                         1 * aspect_mat); // 字体粗细
         }
     }
-    MYLOG << "画框-结束\n";
+    // MYLOG << "画框-结束\n";
     return mat;
 }
 
