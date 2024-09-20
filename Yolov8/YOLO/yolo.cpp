@@ -188,6 +188,9 @@ cv::Mat Yolo::PreprocessImage(cv::Mat m)
 //运行模型，画框
 cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
 {
+    //----------
+    cv::Mat cropped;
+    //-----------
     // MYLOG << "运行模型-开始";
     // 从数据值创建输入张量对象
     //输入节点的数值相乘 1*3*640*640
@@ -336,6 +339,15 @@ cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
                           cv::Point(x_2,y_2),//右上
                           cv::Scalar(0, 255, 0), //颜色
                           2 * aspect_mat);//粗细
+
+//-------------------------------------
+//			// 定义有效的裁剪区域
+//			cv::Rect roi(cv::Point(x_1,y_2), cv::Point(x_2,y_1));
+
+//			// 检查裁剪区域是否有效
+//			cropped = mat(roi);
+//-------------------------------------
+
             //文字
 			std::string textChar = "face %f" + std::to_string(threshold);
 
@@ -344,11 +356,12 @@ cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
                         cv::FONT_HERSHEY_SIMPLEX,
 						2.0 * aspect_mat/4, // 字体大小
                         cv::Scalar(0, 255, 0), // 字体颜色
-                        1 * aspect_mat); // 字体粗细
+						0.6 * aspect_mat); // 字体粗细
         }
     }
     // MYLOG << "画框-结束\n";
-    return mat;
+	return mat;
+//	return cropped;
 }
 
 

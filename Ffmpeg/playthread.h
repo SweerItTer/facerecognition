@@ -35,12 +35,15 @@ public:
 
 	void Start();
 
+	void Pause(int i);
+
 signals:
 	void pixframesSignal(QPixmap image);
 	void cvframesSignal(cv::Mat image);
 private:
 	std::string url_;
 	bool abord_;
+	bool paused;
 
 	DemuxThread_network *demux_thread_network = nullptr;
 	DemuxThread *demux_thread = nullptr;

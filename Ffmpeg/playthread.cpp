@@ -27,17 +27,23 @@ PlayThread::~PlayThread(){
 void PlayThread::Start()
 {
 	abord_ = false;
+	paused = false;
 	QThread::start();
 }
 
 void PlayThread::Stop()
 {
 	if (this->isRunning()) {
+		paused = false;
 		abord_ = true;
 		QThread::quit(); // 请求线程退出
 		QThread::wait(); // 等待线程退出
 		qDebug() << "Player thread stop.\n";
 	}
+}
+
+void PlayThread::Pause(int i){
+	paused = (i == 1);
 }
 
 void PlayThread::run(){
@@ -99,6 +105,7 @@ void PlayThread::run(){
 	cv::Mat mat_;
 	//QPixmap img;
 	while(!abord_){
+		while(true == paused);
 		AVFrame *frame = video_frame_queue.Pop(100);//取出帧
 		if (frame){
 //			qDebug() << frame->width << "x" << frame->height << "\n";

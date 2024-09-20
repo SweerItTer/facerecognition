@@ -968,6 +968,7 @@ void MainWindow::on_but_sure_clicked()
 	if(ret < 0){
 		MYLOG << "Fail to created thread";
 	}
+	ui->stackedWidget->setCurrentWidget(ui->page_2);
 }
 
 

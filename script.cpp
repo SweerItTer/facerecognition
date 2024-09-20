@@ -99,15 +99,18 @@ void Script::prossPixSignal(QPixmap image){
 
 void Script::prossCVSignal(cv::Mat image) {
 	QMutexLocker locker(&queueMutex);
-	if (frameQueue.size() < 60) { // 限制队列大小，防止内存溢出
+	if (frameQueue.size() < 144) { // 限制队列大小，防止内存溢出
 		frameQueue.enqueue(std::move(image));
+		p_thread->Pause(0);
+	} else {
+		p_thread->Pause(1);
 	}
 }
 
 void Script::updateUI(const QPixmap& image) {
-	//QPixmap scaledPixmap = image.scaled(mw->ui->lb_camera->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-	// mw->ui->lb_camera->setPixmap(scaledPixmap);
-	mw->ui->lb_camera->setPixmap(image);
+	QPixmap scaledPixmap = image.scaled(mw->ui->lb_camera->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	mw->ui->lb_camera->setPixmap(scaledPixmap);
+//	mw->ui->lb_camera->setPixmap(image);
 
 }
 

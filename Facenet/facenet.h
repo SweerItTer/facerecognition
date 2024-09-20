@@ -8,8 +8,7 @@ class FaceNet
 {
 
 public:
-	FaceNet(Ort::Env& env, const wchar_t* model_path, Ort::SessionOptions& session_options);
-
+	FaceNet(const wchar_t* model_path);
 
 	~FaceNet();
 
@@ -26,6 +25,7 @@ private:
 	//mat转vector
 	static std::vector<float> matToVector(const cv::Mat& mat);
 
-	Ort::Session* session;
+	Ort::Env* env;
+	Ort::Session* session = nullptr;
 };
 #endif // FACENET_H

@@ -13,8 +13,8 @@ find_package(OpenCV REQUIRED)
 
 set(PROJECT_SOURCES
     main.cpp
-    widget.cpp
-    widget.h
+    facenet.cpp
+    facenet.h
 )
 
 # Include directories for headers
