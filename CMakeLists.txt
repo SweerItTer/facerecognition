@@ -39,9 +39,9 @@ if (MSVC)
 endif()
 
 # Set paths to dependencies
-set(OpenCV_DIR "D:/Program/OpenCV/opencv/build/x64/vc15/lib")
-set(onnxDir "D:/Program/onnxruntime-win-x64-1.10.0/")
-set(FFMPEG_PREFIX_PATH "C:/ffmpeg")
+set(OpenCV_DIR "F:/OpenCV/opencv-4.5.1/build/x64/vc15/lib")
+set(onnxDir "F:/onnxruntime-win-x64-1.10.0/")
+set(FFMPEG_PREFIX_PATH "F:/FFmpeg/ffmpeg-6.1.1-full_build-shared")
 
 # Find required packages
 find_package(OpenCV REQUIRED)
