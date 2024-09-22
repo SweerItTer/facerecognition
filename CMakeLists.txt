@@ -41,8 +41,13 @@ endif()
 # Set paths to dependencies
 set(OpenCV_DIR "D:/Program/OpenCV/opencv/build/x64/vc15/lib")
 set(onnxDir "D:/Program/onnxruntime-win-x64-1.10.0/")
+set(sqlDir "C:/Program Files/MySQL/MySQL Server 8.0")
 set(FFMPEG_PREFIX_PATH "C:/ffmpeg")
 
+if (sqlDir)
+    include_directories(${sqlDir}/include)
+    link_directories(${sqlDir}/lib)
+endif()
 # Find required packages
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -116,18 +121,21 @@ add_executable(FaceRecognition ${PROJECT_SOURCES})
 
 # Link libraries to the target
 target_link_libraries(FaceRecognition PRIVATE
-    ${OpenCV_LIBS}
-    onnxruntime
     #ffmpeg
     avcodec
     avformat
     avutil
     swscale
     swresample
+    # qt5
     Qt5::Core
     Qt5::Widgets
     Qt5::Charts
     Qt5::PrintSupport
+
+    ${OpenCV_LIBS}
+    onnxruntime
+    mysqlclient
 )
 
 # Optionally, set output directory for the executable

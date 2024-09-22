@@ -63,7 +63,7 @@ void DemuxThread::Run()
 	//锟斤拷始锟斤拷锟斤拷
 	AVPacket *frame_packet = av_packet_alloc();
 	while(false == abort_){
-		if(audio_queue_->Size() > 100 || video_queue_->Size() > 100){
+		if(audio_queue_->Size() > 100 || video_queue_->Size() > 120){
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
 			continue;
 		}
