@@ -13,7 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # 查找并添加 Qt5 库
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Charts PrintSupport Sql)
-find_package(Qt5 REQUIRED COMPONENTS Widgets Charts PrintSupport Sql)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Charts PrintSupport Sql)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Linux-specific flags
@@ -39,21 +39,22 @@ if (MSVC)
 endif()
 
 # Set paths to dependencies
-set(OpenCV_DIR "D:/Program/OpenCV/opencv/build/x64/vc15/lib")
-set(onnxDir "D:/Program/onnxruntime-win-x64-1.10.0/")
 set(FFMPEG_PREFIX_PATH "C:/ffmpeg")
+set(onnxDir "D:/Program/onnxruntime-win-x64-1.10.0/")
+set(OpenCV_DIR "D:/Program/OpenCV/opencv/build/x64/vc15/lib")
+
 set(sqlDir "C:/Program Files/MySQL/MySQL Server 8.0")
 
-# if (sqlDir)
-#     include_directories(${sqlDir}/include)
-#     link_directories(${sqlDir}/lib)
-# endif()
+if (sqlDir)
+    include_directories(${sqlDir}/include)
+    link_directories(${sqlDir}/lib)
+endif()
 # Find required packages
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 # include qt lib (if Qt5_INCLUDE_DIRS donot include)
-# include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
+include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
 
 # If onnxDir is provided, set include and lib paths
 if (onnxDir)
@@ -131,11 +132,10 @@ target_link_libraries(FaceRecognition PRIVATE
     swscale
     swresample
     # qt5
-    Qt5::Core
-    Qt5::Widgets
-    Qt5::Charts
-    Qt5::PrintSupport
-    Qt5::Sql
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Charts
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+    Qt${QT_VERSION_MAJOR}::Sql
 )
 
 # Optionally, set output directory for the executable

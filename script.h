@@ -9,6 +9,10 @@
 #include "./imageprocessor.h"
 #include "./Yolov8/YOLO/yolo.h"
 
+#include "./Yolov8/YOLO/yolo.h"
+#include "./Sql/facedatabase.h"
+#include "./Facenet/facenet.h"
+
 class MainWindow;
 class Yolo;
 
@@ -29,7 +33,10 @@ private:
 	std::string modelPath;
 
 	MainWindow *mw = nullptr;
+	FaceDatabase *database = nullptr;
 	Yolo *yolo = nullptr;
+	FaceNet *facenet = nullptr;
+	
 	Ort::Session *session = nullptr;
 	ImageProcessor *imageProcessor = nullptr;
 

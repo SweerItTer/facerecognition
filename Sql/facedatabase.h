@@ -1,9 +1,13 @@
-﻿#include <iostream>
+﻿#ifndef FACE_DATABASE_H
+#define FACE_DATABASE_H
+
+#include <iostream>
 #include <mysql.h>
 #include <vector>
 #include <cstring>
 
-class FaceDatabase {
+class FaceDatabase 
+{
 public:
     FaceDatabase(const std::string& host, const std::string& user, const std::string& password, const std::string& db_name) {
         conn = mysql_init(nullptr);
@@ -107,5 +111,7 @@ public:
     }
 
 private:
-    MYSQL* conn;
+    MYSQL*  conn;
 };
+#endif // FACE_DATABASE_H
+

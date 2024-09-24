@@ -22,11 +22,13 @@ Script::~Script()
 
 void Script::Configurate(){
 	yolo = new Yolo(nullptr);
+	facenet = new FaceNet(L"D:/Program/project/gitee/facerecognition/Facenet/ONNX_model/full_model.onnx");
+	database = new FaceDatabase("localhost", "root", "Youisshit1", "FaceDB");
 	std::cout << "Created yolo." << std::endl;
 
 	qRegisterMetaType<cv::Mat>("cv::Mat");
 
-	imageProcessor = new ImageProcessor(yolo);
+	imageProcessor = new ImageProcessor(yolo, facenet, database);
 
 	imageProcessor->setCallback([this](const QPixmap& img) {
 		// 在主线程中更新 UI
