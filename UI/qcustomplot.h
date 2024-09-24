@@ -27,8 +27,8 @@
 #define QCUSTOMPLOT_H
 
 #pragma execution_character_set(push, "utf-8")
-
-#include <QtCore/qglobal.h>
+#include <QtGlobal>
+// #include <QtCore/qglobal.h>
 
 // some Qt version/configuration dependent macros to include or exclude certain code paths:
 #ifdef QCUSTOMPLOT_USE_OPENGL

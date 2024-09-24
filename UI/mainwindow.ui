@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1103</width>
-    <height>786</height>
+    <height>795</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -803,7 +803,49 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="page_3"/>
+      <widget class="QWidget" name="page_3">
+       <layout class="QGridLayout" name="gridLayout_14">
+        <item row="0" column="2">
+         <widget class="QPushButton" name="pushButton_2">
+          <property name="text">
+           <string>查找</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QLineEdit" name="lineEdit"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="pushButton_4">
+          <property name="text">
+           <string>删除</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QDateEdit" name="dateEdit"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_3">
+          <property name="text">
+           <string>增加</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="3">
+         <widget class="QWidget" name="widget_3" native="true">
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 230, 129);</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_15">
+           <item row="0" column="0">
+            <widget class="QTableView" name="identity"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="page_4">
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="7" column="4">
@@ -854,7 +896,7 @@
         <item row="4" column="0">
          <widget class="QLabel" name="lb_storagefile">
           <property name="text">
-           <string>录入信息存储位置：</string>
+           <string>身份信息存储位置：</string>
           </property>
          </widget>
         </item>

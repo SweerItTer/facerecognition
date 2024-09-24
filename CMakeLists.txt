@@ -12,9 +12,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # 查找并添加 Qt5 库
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Charts PrintSupport)
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets Charts PrintSupport)
-
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Charts PrintSupport Sql)
+find_package(Qt5 REQUIRED COMPONENTS Widgets Charts PrintSupport Sql)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Linux-specific flags
@@ -45,10 +44,10 @@ set(onnxDir "D:/Program/onnxruntime-win-x64-1.10.0/")
 set(FFMPEG_PREFIX_PATH "C:/ffmpeg")
 set(sqlDir "C:/Program Files/MySQL/MySQL Server 8.0")
 
-if (sqlDir)
-    include_directories(${sqlDir}/include)
-    link_directories(${sqlDir}/lib)
-endif()
+# if (sqlDir)
+#     include_directories(${sqlDir}/include)
+#     link_directories(${sqlDir}/lib)
+# endif()
 # Find required packages
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -136,6 +135,7 @@ target_link_libraries(FaceRecognition PRIVATE
     Qt5::Widgets
     Qt5::Charts
     Qt5::PrintSupport
+    Qt5::Sql
 )
 
 # Optionally, set output directory for the executable

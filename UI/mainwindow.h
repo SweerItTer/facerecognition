@@ -1,5 +1,6 @@
 ﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
+#include "UI/qcustomplot.h"
 
 #include <QStyleOption>
 #include <QPushButton>
@@ -9,6 +10,8 @@
 #include <QDebug>
 #include <QIcon>
 #include <QtCharts>
+#include <QSqlDatabase>
+#include <QSqlTableModel>
 QT_CHARTS_USE_NAMESPACE
 
 #include <functional> // For std::function
@@ -37,16 +40,21 @@ public:
 
 	Ui::MainWindow *ui;
 private slots:
-    virtual void paintEvent(QPaintEvent *event) override; // 重绘窗口
+    // 重绘窗口
+    virtual void paintEvent(QPaintEvent *event) override; 
     virtual void mousePressEvent(QMouseEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
-
-    void on_but_home_clicked();
+    // 右上窗口按键
+    void on_but_max_clicked();
+    void on_but_min_clicked();
+    void on_but_off_clicked();
+    // 左侧边框按键
+    void on_but_home_clicked(); 
     void on_but_camera_clicked();
     void on_but_data_clicked();
     void on_but_set_clicked();
-
+    // page0 首页统计图
     void setBarChart();// 柱状图
     void setBarChart_2();
     void setProgressBar();// 原型进度条
@@ -54,15 +62,11 @@ private slots:
     void setLineChart();// 折线图
     void setSplineChart();// 曲线图
 
-
-    void on_but_max_clicked();
-    void on_but_min_clicked();
-    void on_but_off_clicked();
-
-
-
     void on_pushButton_clicked();
+    // page2 数据库
+    void mysqlInit();
 
+    // page3 设置页面
 	void on_but_sure_clicked();
 
 	void on_but_onnx_clicked();
@@ -70,6 +74,9 @@ private slots:
 private:
     bool m_leftMousePressed = false; //鼠标是否点中标题栏，是true，否false
     QPoint m_StartPoint ; // 窗口的全局位置
+
+    QSqlTableModel *model;
+    QSqlDatabase mysql;
 
     QString but_on = QString("QPushButton{background-color: rgb(62, 69, 176);}");// 打开
     QString but_off = QString("QPushButton{background-color: rgba(0, 0, 0, 0);}");// 未打开

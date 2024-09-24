@@ -169,7 +169,7 @@ private:
                 QImage img(result[0].data, result[0].cols, result[0].rows, result[0].step, QImage::Format_RGB888);
                 QPixmap pixmap = QPixmap::fromImage(img.rgbSwapped());
                 callback(pixmap);
-
+                result.release();
                 image.release(); // Clear image after processing
             }
         }

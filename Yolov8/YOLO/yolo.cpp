@@ -329,7 +329,7 @@ std::vector<cv::Mat> Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv
             // 检查裁剪区域是否有效
             if (width > 0 && height > 0) {
                 cv::Rect roi(x, y, width, height);
-                cropped = mat(roi); // 使用 clone() 创建一个新的 Mat 对象
+                cropped = mat(roi).clone(); // 使用 clone() 创建一个新的 Mat 对象
             }
 
             if(!cropped.empty()) 
