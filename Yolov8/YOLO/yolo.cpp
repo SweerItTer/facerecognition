@@ -341,11 +341,24 @@ cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
                           2 * aspect_mat);//粗细
 
 //-------------------------------------
-//			// 定义有效的裁剪区域
-//			cv::Rect roi(cv::Point(x_1,y_2), cv::Point(x_2,y_1));
+            // 在for循环内部，替换最后的裁剪部分
+            // 确保所有坐标和尺寸都是非负的
+            int x = std::max(0, static_cast<int>(std::round(x_3)));
+            int y = std::max(0, static_cast<int>(std::round(y_3)));
+            int width = static_cast<int>(std::round(w));
+            int height = static_cast<int>(std::round(h));
 
-//			// 检查裁剪区域是否有效
-//			cropped = mat(roi);
+            // 确保裁剪区域不超出图像边界
+            x = std::min(x, mat.cols - 1);
+            y = std::min(y, mat.rows - 1);
+            width = std::min(width, mat.cols - x);
+            height = std::min(height, mat.rows - y);
+
+            // 检查裁剪区域是否有效
+            if (width > 0 && height > 0) {
+                cv::Rect roi(x, y, width, height);
+                cropped = mat(roi); // 使用 clone() 创建一个新的 Mat 对象
+            }
 //-------------------------------------
 
             //文字
@@ -360,8 +373,9 @@ cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
         }
     }
     // MYLOG << "画框-结束\n";
-	return mat;
-//	return cropped;
+	// return mat;
+    if(cropped.empty()) return mat;
+	else return cropped;
 }
 
 
