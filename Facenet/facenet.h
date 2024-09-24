@@ -13,7 +13,7 @@ public:
 	~FaceNet();
 
 	//模型输出
-	std::vector<float> outputs(const std::string& img_path,//图片路径
+	std::vector<float> outputs(const cv::Mat& image,//图片路径
 						 const std::vector<int64_t>& inputTensorShape//“NCHW”格式 N代表批处理大小，C代表通道，H代表高度，W代表宽度）
 						 );
 

@@ -5,15 +5,9 @@
 
 
 Yolo::Yolo(QObject *parent)
-    :QObject(parent)
-    , capture(new cv::VideoCapture)
-{
-    timer = new QTimer ;
-    connect(timer,&QTimer::timeout,this,&Yolo::updateFrame);
-}
+    :QObject(parent){}
 Yolo::~Yolo()
 {
-    delete capture;
 	delete env;
 	delete session;
 }
@@ -32,17 +26,11 @@ bool Yolo::loadModel(QString filename)
         MYLOG<<"创建会话-成功";
 
         // 检查是否有可用的CUDA设备（即检查是否可以使用GPU进行加速）
-        int deviceID = cv::cuda::getCudaEnabledDeviceCount();
-        MYLOG<<"可用的CUDA数："<<deviceID;
-        if(deviceID == 1)
-        {
-            // 如果有可用的CUDA设备，将网络的推理后端设置为CUDA以使用GPU
-            this->net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-            this->net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
-            emit signal_str("将使用CUDA推理\n");
-        }
-        else
-            emit signal_str("未检测到可用GPU，将使用CPU推理！");
+//---------------
+// ONNX GPU
+//---------------
+
+        emit signal_str("将使用CPU推理！");
 
         emit signal_str("**********模型信息**********");
 		printInputModel(session);
@@ -54,7 +42,7 @@ bool Yolo::loadModel(QString filename)
 
 // 运行模型
 
-void Yolo::runModel(cv::Mat m, QString type ,cv::Mat &retImg)
+void Yolo::runModel(cv::Mat m, QString type ,std::vector<cv::Mat> &retImg)
 {
 //	MYLOG<<"开始运行模型";
 	filetype = type;//文件类型
@@ -63,35 +51,17 @@ void Yolo::runModel(cv::Mat m, QString type ,cv::Mat &retImg)
 //		MYLOG<<"对图像进行识别";
 		cv::Mat final_mat = PreprocessImage(m);
 		retImg = sessionRun(session,final_mat,m);
-//		emit signal_mat(mat);
 
-	}else if(filetype == "video"){
-		MYLOG<<"对视频进行识别";
-//            double frameRate = capture->get(cv::CAP_PROP_FPS);
-//            timer->start(1000/frameRate); // 根据帧率开始播放
-		timer->start(100);
 	}else{
-		MYLOG<<"对摄像头进行识别";
-		capture->open(0);
-		timer->start(100);
+		MYLOG << "不支持的类型";
+        return;
 	}
 }
 
 //停止检测
 void Yolo::stopModel()
 {
-    if(filetype == "video"){
-        MYLOG<<"对视频进行识别";
-        timer->stop();
-        cv::Mat mat;
-        capture->read(mat);
-        emit signal_mat(mat);
-        capture->release();
-    }else{
-        MYLOG<<"对摄像头进行识别";
-        timer->stop();
-        capture->release();
-    }
+    
 }
 
 // 打印模型输入信息
@@ -186,10 +156,12 @@ cv::Mat Yolo::PreprocessImage(cv::Mat m)
 }
 
 //运行模型，画框
-cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
+std::vector<cv::Mat> Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
 {
     //----------
     cv::Mat cropped;
+    std::vector<cv::Mat> re_mat;
+    re_mat.push_back(mat);
     //-----------
     // MYLOG << "运行模型-开始";
     // 从数据值创建输入张量对象
@@ -359,6 +331,10 @@ cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
                 cv::Rect roi(x, y, width, height);
                 cropped = mat(roi); // 使用 clone() 创建一个新的 Mat 对象
             }
+
+            if(!cropped.empty()) 
+                re_mat.push_back(cropped);
+
 //-------------------------------------
 
             //文字
@@ -373,9 +349,8 @@ cv::Mat Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
         }
     }
     // MYLOG << "画框-结束\n";
-	// return mat;
-    if(cropped.empty()) return mat;
-	else return cropped;
+
+    return re_mat;
 }
 
 
@@ -397,67 +372,4 @@ void Yolo::normalized(cv::Mat input_tensor, std::vector<float> &output_data)
             }
         }
     }
-}
-
-//更新帧率，视频，摄像头
-void Yolo::updateFrame()
-{
-    Ort::Env env;
-    Ort::Session session(env,onnxpath.toStdWString().c_str(),Ort::SessionOptions{nullptr});
-
-    cv::Mat mat_f;
-    if(filetype=="video"){
-        capture->read(mat_f);
-//        int frameNumber = static_cast<int>(capture->get(cv::CAP_PROP_POS_FRAMES));
-//        MYLOG<<"当前帧："<<frameNumber;
-        if(mat_f.data == nullptr) return;
-        cv::cvtColor(mat_f,mat_f,cv::COLOR_BGR2RGB);
-        cv::Mat final_mat = PreprocessImage(mat_f);
-        mat_f = sessionRun(&session,final_mat,mat_f);
-
-    }else if(filetype=="camera"){
-        cv::Mat src;
-        if(capture->isOpened())
-        {
-            *capture >> src;
-            if(src.data == nullptr) return ;
-            //将图像转换为qt能够处理的格式
-            cv::cvtColor(src,mat_f,cv::COLOR_BGR2RGB);
-            cv::flip(mat_f,mat_f,1);
-            cv::Mat final_mat = PreprocessImage(mat_f);
-            mat_f = sessionRun(&session,final_mat,mat_f);
-            emit signal_mat(mat_f);
-        }
-    }
-    session.release();
-    emit signal_mat(mat_f);
-}
-
-void Yolo::Capture (QString c)
-{
-    capture->open(c.toStdString());//用opcv打开视频
-    if(!capture->isOpened()){
-        emit signal_str("mp4文件打开失败");//mp4文件打开失败
-        return;
-    }
-    //获取视频信息
-    long totalFrame = capture->get(cv::CAP_PROP_FRAME_COUNT);//显示信息
-    int width = capture->get(cv::CAP_PROP_FRAME_WIDTH);//宽
-    int height = capture->get(cv::CAP_PROP_FRAME_HEIGHT);//高
-    emit signal_str(QString("整个视频共 %1 帧, 宽=%2 高=%3 ").arg(totalFrame).arg(width).arg(height));
-
-    //设置从视频的开始帧开始
-    long frameToStart = 0;
-    capture->set(cv::CAP_PROP_POS_FRAMES,frameToStart);
-    emit signal_str(QString("从 %1 开始读").arg(frameToStart));
-
-    //获取视频帧数
-    double framRate = capture->get(cv::CAP_PROP_FPS);
-    emit signal_str(QString("帧率为： %1").arg(framRate));
-
-    //读取视频第一帧
-    cv::Mat mat_f;
-    capture->read(mat_f);
-    cv::cvtColor(mat_f,mat_f,cv::COLOR_BGR2RGB);
-    emit signal_mat(mat_f);//将调整后的图片放到标签上
 }

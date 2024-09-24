@@ -79,15 +79,8 @@ std::vector<float> FaceNet::matToVector(const cv::Mat& img) {
 }
 
 
-std::vector<float> FaceNet::outputs(const std::string& img_path, const std::vector<int64_t>& inputTensorShape){
+std::vector<float> FaceNet::outputs(const cv::Mat& image, const std::vector<int64_t>& inputTensorShape){
 	std::vector<float> inputTensors = {/* 填充输入数据 */};
-
-	std::cout << "----process input image------\n";
-/*图像处理*/
-	cv::Mat image = cv::imread(img_path,cv::IMREAD_COLOR);//读取图片数据
-	if (image.empty()) {
-		throw std::runtime_error("Failed to read image: " + img_path);
-	}
 
 	cv::Mat img_input;
 	//重置大小
@@ -96,7 +89,6 @@ std::vector<float> FaceNet::outputs(const std::string& img_path, const std::vect
 	//归一化
 	img_input = preprocess_input(img_input);
 	// 将预处理后的图像转换为输入向量
-	
 	inputTensors = matToVector(img_input);
 
 /*模型推理*/

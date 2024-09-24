@@ -39,10 +39,9 @@ public:
     ~Yolo();
     bool loadModel(QString onnxfile);//检测模型
 //    void runModel(QString o,QString f ,cv::Mat m,QString type);//运行模型
-	void runModel(cv::Mat m, QString type, cv::Mat &retImg);
+	void runModel(cv::Mat m, QString type, std::vector<cv::Mat> &retImg);
 	void stopModel();//停止检测
-    void updateFrame();
-    void Capture (QString c);
+
 
 private:
 
@@ -51,7 +50,7 @@ private:
     void predictImage(Ort::Session *session, cv::Mat m);//预测图片
     void normalized(cv::Mat input_tensor, std::vector<float> &output_data);//图片归一化
     cv::Mat PreprocessImage(cv::Mat m);
-    cv::Mat sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat);
+    std::vector<cv::Mat> sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat);
 
 
     size_t num_input_nodes; //输入节点数量
@@ -64,11 +63,8 @@ private:
     int output_tensor_size;//输出节点的数值相乘 1*84*8400
 
 
-    cv::dnn::Net net;
-    QTimer *timer;
     QString filetype;
     QString onnxpath;//模型路径
-    cv::VideoCapture *capture;
     bool seeion_run_over ;
     float aspect_mat;
     int fixed_w ;

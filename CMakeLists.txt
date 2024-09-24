@@ -13,7 +13,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # 查找并添加 Qt5 库
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Charts PrintSupport)
-find_package(Qt5 REQUIRED COMPONENTS Widgets Charts PrintSupport)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets Charts PrintSupport)
+
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Linux-specific flags
@@ -41,8 +42,8 @@ endif()
 # Set paths to dependencies
 set(OpenCV_DIR "D:/Program/OpenCV/opencv/build/x64/vc15/lib")
 set(onnxDir "D:/Program/onnxruntime-win-x64-1.10.0/")
-set(sqlDir "C:/Program Files/MySQL/MySQL Server 8.0")
 set(FFMPEG_PREFIX_PATH "C:/ffmpeg")
+set(sqlDir "C:/Program Files/MySQL/MySQL Server 8.0")
 
 if (sqlDir)
     include_directories(${sqlDir}/include)
@@ -53,7 +54,7 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 # include qt lib (if Qt5_INCLUDE_DIRS donot include)
-include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
+# include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
 
 # If onnxDir is provided, set include and lib paths
 if (onnxDir)
@@ -121,6 +122,9 @@ add_executable(FaceRecognition ${PROJECT_SOURCES})
 
 # Link libraries to the target
 target_link_libraries(FaceRecognition PRIVATE
+    ${OpenCV_LIBS}
+    onnxruntime
+    libmysql
     #ffmpeg
     avcodec
     avformat
@@ -132,10 +136,6 @@ target_link_libraries(FaceRecognition PRIVATE
     Qt5::Widgets
     Qt5::Charts
     Qt5::PrintSupport
-
-    ${OpenCV_LIBS}
-    onnxruntime
-    mysqlclient
 )
 
 # Optionally, set output directory for the executable

@@ -939,7 +939,7 @@ p, li { white-space: pre-wrap; }
   <customwidget>
    <class>QCustomPlot</class>
    <extends>QWidget</extends>
-   <header location="global">qcustomplot.h</header>
+   <header location="global">UI/qcustomplot.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

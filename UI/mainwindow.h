@@ -14,7 +14,7 @@ QT_CHARTS_USE_NAMESPACE
 #include <functional> // For std::function
 
 #include <opencv2/opencv.hpp>
-#include "qcustomplot.h"
+#include "./qcustomplot.h"
 #include "../script.h"
 
 
