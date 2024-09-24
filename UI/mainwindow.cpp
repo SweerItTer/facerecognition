@@ -12,13 +12,18 @@ MainWindow::MainWindow(QWidget *parent)
 
 	callback = new Script(this);
 
+    // 初始化
+    // page0 首页统计图
     setBarChart();
     setBarChart_2();
     setProgressBar();
     setPieChart();
     setLineChart();
     setSplineChart();
+    // page2 数据库
+    mysqlInit();
 
+    // 个性化
     // 窗口
     this->setWindowFlags(Qt::FramelessWindowHint);      //隐藏最大最小化等按键
     this->setAttribute(Qt::WA_TranslucentBackground);         //设置窗口透明化
@@ -959,6 +964,30 @@ void MainWindow::on_pushButton_clicked()
     setLineChart();
     setSplineChart();
 }
+
+void MainWindow::mysqlInit()
+{
+    QSqlDatabase mysql = QSqlDatabase::addDatabase("MySQL123456");
+    mysql.setPort(3306);
+    mysql.setHostName("127.0.0.1"); // 数据库服务器ip
+    mysql.setUserName("root");  // 数据库用户名
+    mysql.setPassword("123456");    // 密码
+    mysql.setDatabaseName("identificationinformation"); // 使用哪个数据库
+    if(!mysql.open())
+    {
+        MYLOG<<"mysql 打开失败";
+        return;
+    }
+
+    model = new QSqlTableModel(this);
+    model->setTable("identificationinformation");
+    ui->identity->setModel(model);
+    model->select();
+    model->setHeaderData(0,Qt::Horizontal,"姓名");
+
+}
+
+
 // ---------------- HJJ --------------- //
 void MainWindow::on_but_sure_clicked()
 {
@@ -970,7 +999,6 @@ void MainWindow::on_but_sure_clicked()
 	}
 	ui->stackedWidget->setCurrentWidget(ui->page_2);
 }
-
 
 void MainWindow::on_but_onnx_clicked()
 {
