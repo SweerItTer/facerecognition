@@ -55,12 +55,24 @@ private:
                         const std::vector<std::vector<float>>& stored_features, const std::string& user_id, std::string& matched_user) {
             // 计算特征距离
             for (const auto& stored_feature : stored_features) {
-                double distance = 0.0;
-                for (size_t i = 0; i < features.size(); ++i) {
-                    distance += std::pow(features[i] - stored_feature[i], 2);
+                if (features.size() != stored_feature.size()) {
+                    return false;  // 特征维度不匹配
                 }
-                distance = std::sqrt(distance);
+                double distance = 0.0;
 
+                try
+                {
+                    for (size_t i = 0; i < features.size(); ++i) {
+                        distance += std::pow(features.at(i) - stored_feature.at(i), 2);
+                    }
+                    distance = std::sqrt(distance);
+                }
+                catch(const std::exception& e)
+                {
+                    std::cerr << e.what() << '\n';
+                    return false;
+                }
+                
                 if (distance <= 1.1) {
                     matched_user = user_id;
                     return true;
@@ -72,7 +84,7 @@ private:
     // 处理多张人脸
     void processFaces(const std::vector<cv::Mat>& result,
                      std::vector<std::pair<std::string, std::vector<std::vector<float>>>>& all_features) {
-                
+
         std::vector<std::future<bool>> futures;
         std::string matched_user;
 
@@ -82,7 +94,9 @@ private:
 
         // 存在多张人脸时
         for (int index = 1; index < result.size(); index++) {
-            std::vector<float> features = facenet->outputs(result[index], {1, 3, 160, 160});
+            std::vector<float> features = facenet->outputs(result.at(index), {1, 3, 160, 160});
+            cv::imwrite("result.jpg", result.at(index));  // 保存检测结果图片
+
 
             // 异步特征比对
             for (const auto& user_features : all_features) {
@@ -92,7 +106,7 @@ private:
                 // 控制并发任务数
                 if (task_counter >= max_concurrent_tasks) {
                     for (auto& future : futures) {
-                        if (future.get()) {
+                        if (future.get() == true) {
                             std::cout << "Matched user: " << matched_user << std::endl;
                             return;
                         }
@@ -114,7 +128,7 @@ private:
 
         // 等待剩余的异步任务完成
         for (auto& future : futures) {
-            if (future.get()) {
+            if (future.get() == true) {
                 std::cout << "Matched user: " << matched_user << std::endl;
                 return;
             }
@@ -146,7 +160,7 @@ void process() {
                 continue;
             }
             // 调用人脸处理函数处理 YOLO 检测到的人脸            
-            if (result.size() > 1)  processFaces(result, all_features);
+            // if (result.size() > 1)  processFaces(result, all_features);
             // 将 cv::Mat 转换为 QImage 和 QPixmap，方便在 Qt 中显示
             QImage img((uchar*)(result[0].data), static_cast<int>(result[0].cols), 
                         static_cast<int>(result[0].rows), static_cast<int>(result[0].step), QImage::Format_RGB888);

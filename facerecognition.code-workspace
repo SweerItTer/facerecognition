@@ -96,7 +96,15 @@
 			"xutility": "cpp",
 			"qtprintsupport": "cpp",
 			"qoffscreensurface": "cpp",
-			"qmargins": "cpp"
+			"qmargins": "cpp",
+			"cstdarg": "cpp",
+			"cwctype": "cpp",
+			"fstream": "cpp",
+			"*.tcc": "cpp",
+			"codecvt": "cpp",
+			"memory_resource": "cpp",
+			"string_view": "cpp",
+			"cinttypes": "cpp"
 		}
 	}
 }

@@ -310,7 +310,7 @@ std::vector<cv::Mat> Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv
                           cv::Point(x_1,y_1),//左下
                           cv::Point(x_2,y_2),//右上
                           cv::Scalar(0, 255, 0), //颜色
-                          2 * aspect_mat);//粗细
+                          1 * aspect_mat);//粗细
 
 //-------------------------------------
             // 在for循环内部，替换最后的裁剪部分

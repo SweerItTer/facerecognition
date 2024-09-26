@@ -82,7 +82,7 @@ void DecodeThread::Run()
 	AVPacket *pkt = nullptr;
 
 	while (!abort_) {
-		if (frame_queue_->Size() > 30) {
+		if (frame_queue_->Size() > 60) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			continue;
 		}

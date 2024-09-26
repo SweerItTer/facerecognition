@@ -107,6 +107,7 @@ void PlayThread::run(){
 	while(!abord_){
 		while(true == paused);
 		AVFrame *frame = video_frame_queue.Pop(100);//取出帧
+
 		if (frame){
 //			qDebug() << frame->width << "x" << frame->height << "\n";
 			AVFrameToCVMat(frame, mat_);//转换为cv::Mat
@@ -175,6 +176,10 @@ void PlayThread::AVFrameToCVMat(AVFrame *frame, cv::Mat &mat)
 
 	// 直接使用BGR24格式的数据
 	mat = cv::Mat(frame->height, frame->width, CV_8UC3, frame->data[0], frame->linesize[0]).clone();
+
+	// 使用缩放因子 0.5 来将图像的宽度和高度缩小到原来的一半
+	cv::resize(mat, mat, cv::Size(), 0.75, 0.75, cv::INTER_LINEAR);
+
 }
 
 QPixmap PlayThread::CVMatToQImage(cv::Mat raw_img){
@@ -189,6 +194,6 @@ QPixmap PlayThread::CVMatToQImage(cv::Mat raw_img){
 	// 显示检测结果
 	QImage qimg((uchar*)(pro_mat.data), static_cast<int>(pro_mat.cols), static_cast<int>(pro_mat.rows), static_cast<int>(pro_mat.step), QImage::Format_RGB888);
 
-	return QPixmap::fromImage(qimg.copy());
+	return QPixmap::fromImage(qimg.copy()); 
 }
 

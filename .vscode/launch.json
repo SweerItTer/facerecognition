@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "name": "CMake: CMake Script",
+            "type": "cmake",
+            "request": "launch",
+            "cmakeDebugType": "script",
+            "scriptPath": "${file}"
+        }
+    ]
+}
