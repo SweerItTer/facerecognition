@@ -112,7 +112,6 @@ void Script::prossCVSignal(cv::Mat image) {
 void Script::updateUI(const QPixmap& image) {
 	QPixmap scaledPixmap = image.scaled(mw->ui->lb_camera->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	mw->ui->lb_camera->setPixmap(scaledPixmap);
-//	mw->ui->lb_camera->setPixmap(image);
 
 }
 

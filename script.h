@@ -7,7 +7,6 @@
 
 #include "Ffmpeg/playthread.h"
 #include "./imageprocessor.h"
-#include "./Yolov8/YOLO/yolo.h"
 
 #include "./Yolov8/YOLO/yolo.h"
 #include "./Sql/facedatabase.h"
@@ -44,7 +43,7 @@ private:
 	bool string_compare(const std::string& s, const std::string& prefix){
 		return (s.compare(0, prefix.size(), prefix) == 0);
 	}
-//	bool fileExists(const std::string& fileName);
+
 	void prossPixSignal(QPixmap image);
 	void prossCVSignal(cv::Mat image);
 	void updateUI(const QPixmap& image);

@@ -10,8 +10,8 @@
 #include <QDebug>
 #include <QIcon>
 #include <QtCharts>
-#include <QSqlDatabase>
-#include <QSqlTableModel>
+// #include <QSqlDatabase>
+// #include <QSqlTableModel>
 QT_CHARTS_USE_NAMESPACE
 
 #include <functional> // For std::function
@@ -64,7 +64,7 @@ private slots:
 
     void on_pushButton_clicked();
     // page2 数据库
-    void mysqlInit();
+    // void mysqlInit();
 
     // page3 设置页面
 	void on_but_sure_clicked();
@@ -75,8 +75,8 @@ private:
     bool m_leftMousePressed = false; //鼠标是否点中标题栏，是true，否false
     QPoint m_StartPoint ; // 窗口的全局位置
 
-    QSqlTableModel *model;
-    QSqlDatabase mysql;
+    // QSqlTableModel *model;
+    // QSqlDatabase mysql;
 
     QString but_on = QString("QPushButton{background-color: rgb(62, 69, 176);}");// 打开
     QString but_off = QString("QPushButton{background-color: rgba(0, 0, 0, 0);}");// 未打开

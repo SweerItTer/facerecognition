@@ -122,6 +122,11 @@ add_executable(FaceRecognition ${PROJECT_SOURCES})
 
 # Link libraries to the target
 target_link_libraries(FaceRecognition PRIVATE
+    # qt5
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Charts
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+    # Qt${QT_VERSION_MAJOR}::Sql
     ${OpenCV_LIBS}
     onnxruntime
     libmysql
@@ -131,11 +136,6 @@ target_link_libraries(FaceRecognition PRIVATE
     avutil
     swscale
     swresample
-    # qt5
-    Qt${QT_VERSION_MAJOR}::Widgets
-    Qt${QT_VERSION_MAJOR}::Charts
-    Qt${QT_VERSION_MAJOR}::PrintSupport
-    Qt${QT_VERSION_MAJOR}::Sql
 )
 
 # Optionally, set output directory for the executable

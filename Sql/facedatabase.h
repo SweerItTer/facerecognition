@@ -1,6 +1,7 @@
-﻿#ifndef FACE_DATABASE_H
-#define FACE_DATABASE_H
+﻿#ifndef FACEDATABASE_H
+#define FACEDATABASE_H
 
+#define NOMINMAX
 #include <iostream>
 #include <mysql.h>
 #include <vector>
@@ -29,60 +30,67 @@ public:
         mysql_close(conn);
     }
 
-    // 插入特征向量到数据库
-    void insertFeatures(const std::string& user_id, const std::vector<std::vector<float>>& feature_vectors) {
-        if (feature_vectors.size() != 3) {
-            throw std::runtime_error("Exactly 3 feature vectors are required.");
-        }
+	// 插入特征向量到数据库
+	bool insertFeatures(const std::string& user_id, const std::vector<std::vector<float>>& feature_vectors) {
+		if (feature_vectors.size() != 3) {
+			std::cerr << "Error: Exactly 3 feature vectors are required." << std::endl;
+			return false;
+		}
 
-        std::string query = "INSERT INTO FaceFeatures (user_id, feature_vector1, feature_vector2, feature_vector3) VALUES (?, ?, ?, ?)";
+		std::string query = "INSERT INTO FaceFeatures (user_id, feature_vector1, feature_vector2, feature_vector3) VALUES (?, ?, ?, ?)";
 
-        // 创建并执行 SQL 语句
-        MYSQL_STMT* stmt = mysql_stmt_init(conn);
-        if (!stmt || mysql_stmt_prepare(stmt, query.c_str(), query.size())) {
-            throw std::runtime_error("Failed to prepare statement: " + std::string(mysql_error(conn)));
-        }
+		// 创建并执行 SQL 语句
+		MYSQL_STMT* stmt = mysql_stmt_init(conn);
+		if (!stmt || mysql_stmt_prepare(stmt, query.c_str(), static_cast<unsigned long>(query.size()))) {
+			std::cerr << "Error: Failed to prepare statement: " << mysql_error(conn) << std::endl;
+			return false;
+		}
 
-        // 绑定参数
-        MYSQL_BIND bind[4];
-        memset(bind, 0, sizeof(bind));
+		// 绑定参数
+		MYSQL_BIND bind[4];
+		memset(bind, 0, sizeof(bind));
 
-        bind[0].buffer_type = MYSQL_TYPE_STRING;
-        bind[0].buffer = (void*)user_id.c_str();
-        bind[0].buffer_length = user_id.size();
+		bind[0].buffer_type = MYSQL_TYPE_STRING;
+		bind[0].buffer = (void*)user_id.c_str();
+		bind[0].buffer_length = static_cast<unsigned long>(user_id.size());
 
-        std::string vector_str1(reinterpret_cast<const char*>(feature_vectors[0].data()), feature_vectors[0].size() * sizeof(float));
-        bind[1].buffer_type = MYSQL_TYPE_BLOB;
-        bind[1].buffer = (void*)vector_str1.data();
-        bind[1].buffer_length = vector_str1.size();
+		std::string vector_str1(reinterpret_cast<const char*>(feature_vectors[0].data()), feature_vectors[0].size() * sizeof(float));
+		bind[1].buffer_type = MYSQL_TYPE_BLOB;
+		bind[1].buffer = (void*)vector_str1.data();
+		bind[1].buffer_length = static_cast<unsigned long>(vector_str1.size());
 
-        std::string vector_str2(reinterpret_cast<const char*>(feature_vectors[1].data()), feature_vectors[1].size() * sizeof(float));
-        bind[2].buffer_type = MYSQL_TYPE_BLOB;
-        bind[2].buffer = (void*)vector_str2.data();
-        bind[2].buffer_length = vector_str2.size();
+		std::string vector_str2(reinterpret_cast<const char*>(feature_vectors[1].data()), feature_vectors[1].size() * sizeof(float));
+		bind[2].buffer_type = MYSQL_TYPE_BLOB;
+		bind[2].buffer = (void*)vector_str2.data();
+		bind[2].buffer_length = static_cast<unsigned long>(vector_str2.size());
 
-        std::string vector_str3(reinterpret_cast<const char*>(feature_vectors[2].data()), feature_vectors[2].size() * sizeof(float));
-        bind[3].buffer_type = MYSQL_TYPE_BLOB;
-        bind[3].buffer = (void*)vector_str3.data();
-        bind[3].buffer_length = vector_str3.size();
+		std::string vector_str3(reinterpret_cast<const char*>(feature_vectors[2].data()), feature_vectors[2].size() * sizeof(float));
+		bind[3].buffer_type = MYSQL_TYPE_BLOB;
+		bind[3].buffer = (void*)vector_str3.data();
+		bind[3].buffer_length = static_cast<unsigned long>(vector_str3.size());
 
-        if (mysql_stmt_bind_param(stmt, bind) || mysql_stmt_execute(stmt)) {
-            throw std::runtime_error("Failed to execute statement: " + std::string(mysql_error(conn)));
-        }
+		if (mysql_stmt_bind_param(stmt, bind) || mysql_stmt_execute(stmt)) {
+			std::cerr << "Error: Failed to execute statement: " << mysql_error(conn) << std::endl;
+			mysql_stmt_close(stmt);
+			return false;
+		}
 
-        mysql_stmt_close(stmt);
-    }
+		mysql_stmt_close(stmt);
+		return true; // 返回成功
+	}
+
 
     // 获取所有用户的特征向量
     std::vector<std::pair<std::string, std::vector<std::vector<float>>>> getAllFeatures() {
         std::string query = "SELECT user_id, feature_vector1, feature_vector2, feature_vector3 FROM FaceFeatures";
         if (mysql_query(conn, query.c_str())) {
-            throw std::runtime_error("Query failed: " + std::string(mysql_error(conn)));
+            std::cerr << "Query failed: " + std::string(mysql_error(conn)) << std::endl;
+            return {};
         }
 
         MYSQL_RES* result = mysql_store_result(conn);
         if (!result) {
-            throw std::runtime_error("mysql_store_result() failed: " + std::string(mysql_error(conn)));
+            std::cerr << "mysql_store_result() failed: " + std::string(mysql_error(conn)) << std::endl;
         }
 
         MYSQL_ROW row;
@@ -113,5 +121,5 @@ public:
 private:
     MYSQL*  conn;
 };
-#endif // FACE_DATABASE_H
 
+#endif // FACEDATABASE_H
