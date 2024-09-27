@@ -44,7 +44,7 @@ bool Yolo::loadModel(QString filename)
 
 void Yolo::runModel(cv::Mat m, QString type ,std::vector<cv::Mat> &retImg)
 {
-//	MYLOG<<"开始运行模型";
+	// MYLOG<<"YOLO推理-开始";
 	filetype = type;//文件类型
 
 	if(filetype == "image"){

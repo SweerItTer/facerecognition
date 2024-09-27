@@ -15,6 +15,7 @@
 #include "./Yolov8/YOLO/yolo.h"
 #include "./Sql/facedatabase.h"
 #include "./Facenet/facenet.h"
+#include "./pool.h"
 
 class Yolo;
 
@@ -23,6 +24,7 @@ class ImageProcessor {
 public:
     ImageProcessor(Yolo *y, FaceNet *f, FaceDatabase *db) 
         : stopFlag(false), yolo(y), facenet(f), database(db) {
+        pool = new Pool(std::thread::hardware_concurrency());
         // 创建线程
         processingThread = std::thread(&ImageProcessor::process, this);
     }
@@ -89,8 +91,8 @@ private:
         std::string matched_user;
 
         // 限制同时运行的异步任务数量
-        const size_t max_concurrent_tasks = std::thread::hardware_concurrency();  // 根据系统线程数调整
-        size_t task_counter = 0;
+        // const size_t max_concurrent_tasks = std::thread::hardware_concurrency();  // 根据系统线程数调整
+        // size_t task_counter = 0;
 
         // 存在多张人脸时
         for (int index = 1; index < result.size(); index++) {
@@ -103,26 +105,29 @@ private:
                 const std::string& user_id = user_features.first;
                 const auto& stored_features = user_features.second;
 
-                // 控制并发任务数
-                if (task_counter >= max_concurrent_tasks) {
-                    for (auto& future : futures) {
-                        if (future.get() == true) {
-                            std::cout << "Matched user: " << matched_user << std::endl;
-                            return;
-                        }
-                    }
-                    futures.clear();
-                    task_counter = 0;
-                }
+                futures.emplace_back(pool->enqueue([this, features, stored_features, user_id, &matched_user]() {
+                        return compareFeatures(features, stored_features, user_id, matched_user);
+                        }));  // 异步执行特征比对
+                // // 控制并发任务数
+                // if (task_counter >= max_concurrent_tasks) {
+                //     for (auto& future : futures) {
+                //         if (future.get() == true) {
+                //             std::cout << "Matched user: " << matched_user << std::endl;
+                //             return;
+                //         }
+                //     }
+                //     futures.clear();
+                //     task_counter = 0;
+                // }
 
-                futures.push_back(std::async(std::launch::async, 
-                                            &ImageProcessor::compareFeatures, 
-                                            this, 
-                                            std::cref(features), 
-                                            std::cref(stored_features), 
-                                            user_id, 
-                                            std::ref(matched_user)));
-                ++task_counter;
+                // futures.push_back(std::async(std::launch::async, 
+                //                             &ImageProcessor::compareFeatures, 
+                //                             this, 
+                //                             std::cref(features), 
+                //                             std::cref(stored_features), 
+                //                             user_id, 
+                //                             std::ref(matched_user)));
+                // ++task_counter;
             }
         }
 
@@ -139,16 +144,23 @@ private:
 void process() {
     std::unique_lock<std::mutex> lock(mutex);  // 锁住互斥量，确保线程安全
     std::string uname;
+    QPixmap pixmap;
     auto all_features = database->getAllFeatures();  // 获取所有人脸特征以及用户名
-
+    auto lastTime = std::chrono::steady_clock::now();
     while (!stopFlag) {
         // 等待条件变量的通知，直到有新图像或停止标志被触发
         cv.wait(lock, [this] { return !image.empty() || stopFlag; });
 
         if (stopFlag) break;  // 如果停止标志被设置，则退出循环
 
+        // 获取当前时间
+        auto currentTime = std::chrono::steady_clock::now();
+        // 计算时间差
+        std::chrono::duration<double> elapsedSeconds = currentTime - lastTime;
+        
         // 如果图像存在并且回调函数有效，则进行处理
-        if (!image.empty() && callback) {
+        if (!image.empty() && callback && elapsedSeconds.count() >= 1.0) {
+            lastTime = currentTime;  // 更新上次调用时间
             std::vector<cv::Mat> result;
 
             // 使用 YOLO 模型进行图像处理
@@ -160,18 +172,22 @@ void process() {
                 continue;
             }
             // 调用人脸处理函数处理 YOLO 检测到的人脸            
-            // if (result.size() > 1)  processFaces(result, all_features);
+            if (result.size() > 1)  processFaces(result, all_features);
             // 将 cv::Mat 转换为 QImage 和 QPixmap，方便在 Qt 中显示
-            QImage img((uchar*)(result[0].data), static_cast<int>(result[0].cols), 
-                        static_cast<int>(result[0].rows), static_cast<int>(result[0].step), QImage::Format_RGB888);
-            QPixmap pixmap = QPixmap::fromImage(img.rgbSwapped());
-
-            // 使用回调函数返回处理后的图像
-            callback(pixmap);
-
-            // 释放处理后的图像，确保内存不会被反复占用
-            image.release();
+            // QImage img((uchar*)(result[0].data), static_cast<int>(result[0].cols), 
+            //             static_cast<int>(result[0].rows), static_cast<int>(result[0].step), QImage::Format_RGB888);
+            // pixmap = QPixmap::fromImage(img.rgbSwapped());
+        } else {// 传回原图
+            QImage img((uchar*)(image.data), static_cast<int>(image.cols), 
+                            static_cast<int>(image.rows), static_cast<int>(image.step), QImage::Format_RGB888);
+            pixmap = QPixmap::fromImage(img.rgbSwapped());
+                
         }
+        // 使用回调函数返回处理后的图像
+        callback(pixmap);
+        // 释放处理后的图像，确保内存不会被反复占用
+        image.release();
+
     }
 }
 
@@ -183,6 +199,7 @@ void process() {
     bool stopFlag;
     std::function<void(const QPixmap&)> callback;
 
+    Pool* pool = nullptr;  // 根据系统线程数创建线程池
     Yolo *yolo = nullptr;
     FaceNet *facenet = nullptr;
     FaceDatabase *database = nullptr;

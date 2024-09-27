@@ -101,7 +101,7 @@ void Script::prossPixSignal(QPixmap image){
 
 void Script::prossCVSignal(cv::Mat image) {
 	QMutexLocker locker(&queueMutex);
-	if (frameQueue.size() < 144) { // 限制队列大小，防止内存溢出
+	if (frameQueue.size() < 30) { // 限制队列大小，防止内存溢出
 		frameQueue.enqueue(std::move(image));
 		p_thread->Pause(0);
 	} else {

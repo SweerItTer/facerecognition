@@ -82,12 +82,12 @@ void DecodeThread::Run()
 	AVPacket *pkt = nullptr;
 
 	while (!abort_) {
-		if (frame_queue_->Size() > 60) {
+		if (frame_queue_->Size() > 80) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			continue;
 		}
 
-		pkt = packet_queue_->Pop(100);
+		pkt = packet_queue_->Pop(1000); // 1000ms超时
 		if (pkt) {
 			ret = avcodec_send_packet(codec_ctx, pkt);
 			av_packet_unref(pkt);
