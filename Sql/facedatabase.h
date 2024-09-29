@@ -10,14 +10,25 @@
 class FaceDatabase 
 {
 public:
-    FaceDatabase(const std::string& host, const std::string& user, const std::string& password, const std::string& db_name) {
+
+/** 
+ * @brief 读取人脸数据库
+ * @param host      端口
+ * @param user      用户名
+ * @param password  密码
+ * @param db_name   数据库名字
+ */
+    FaceDatabase(const std::string& host, const std::string& user, 
+                const std::string& password, const std::string& db_name) 
+    {
         conn = mysql_init(nullptr);
         if (!conn) {
             throw std::runtime_error("mysql_init() failed");
         }
 
         // 连接数据库
-        if (!mysql_real_connect(conn, host.c_str(), user.c_str(), password.c_str(), db_name.c_str(), 0, nullptr, 0)) {
+        if (!mysql_real_connect(conn, host.c_str(), user.c_str(), 
+                                      password.c_str(), db_name.c_str(), 0, nullptr, 0)) {
             std::string error_message = "mysql_real_connect() failed: ";
             error_message += mysql_error(conn);
             mysql_close(conn);
@@ -30,7 +41,12 @@ public:
         mysql_close(conn);
     }
 
-	// 插入特征向量到数据库
+/** 
+ * @brief 插入特征向量到数据库
+ * @param user_id           用户的id
+ * @param feature_vectors   人脸特征组
+ * @return bool
+ */
 	bool insertFeatures(const std::string& user_id, const std::vector<std::vector<float>>& feature_vectors) {
 		if (feature_vectors.size() != 3) {
 			std::cerr << "Error: Exactly 3 feature vectors are required." << std::endl;
@@ -79,8 +95,10 @@ public:
 		return true; // 返回成功
 	}
 
-
-    // 获取所有用户的特征向量
+/** 
+ * @brief 获取所有用户的特征向量
+ * @return all_features     
+ */
     std::vector<std::pair<std::string, std::vector<std::vector<float>>>> getAllFeatures() {
         std::string query = "SELECT user_id, feature_vector1, feature_vector2, feature_vector3 FROM FaceFeatures";
         if (mysql_query(conn, query.c_str())) {
