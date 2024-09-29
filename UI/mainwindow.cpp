@@ -995,6 +995,7 @@ void MainWindow::on_but_sure_clicked()
 	std::string modelPath = ui->le_onnx->text().toStdString();
 	int ret = callback->ensureEnter(rtsp_url, modelPath);
 	if(ret < 0){
+        MYLOG << "Slot error: ";
 		MYLOG << "Fail to created thread";
 	}
 	ui->stackedWidget->setCurrentWidget(ui->page_2);

@@ -15,6 +15,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Charts PrintSupport Sql)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Charts PrintSupport Sql)
 
+include_directories(./Sql/hnswlib)
+
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Linux-specific flags
     add_definitions(-g -O0 -ggdb -gdwarf -funwind-tables -rdynamic)
@@ -36,11 +38,13 @@ endif()
 if (MSVC)
     # 忽略警告 C4819
     add_compile_options(/wd4819)
+    # 忽略警告 C4267
+    add_compile_options(/wd4267)  
 endif()
 
 # Set paths to dependencies
 set(FFMPEG_PREFIX_PATH "C:/ffmpeg")
-set(onnxDir "D:/Program/onnxruntime-win-x64-1.10.0/")
+set(onnxDir "D:/Program/onnxruntime-win-x64-gpu-1.10.0/")
 set(OpenCV_DIR "D:/Program/OpenCV/opencv/build/x64/vc15/lib")
 
 set(sqlDir "C:/Program Files/MySQL/MySQL Server 8.0")
@@ -112,7 +116,7 @@ set(PROJECT_SOURCES
     main.cpp
     script.cpp
     script.h
-    pool.h
+    # pool.h
     imageprocessor.h
     ${RESOURCES}
     ${FORMS}

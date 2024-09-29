@@ -23,7 +23,7 @@ Script::~Script()
 void Script::Configurate(){
 	yolo = new Yolo(nullptr);
 	facenet = new FaceNet(L"D:/Program/project/gitee/facerecognition/Facenet/ONNX_model/full_model.onnx");
-	database = new FaceDatabase("localhost", "root", "Youisshit1", "FaceDB");
+	database = new FaceDatabase("172.18.107.19", "ubt", "ubt1212", "FaceDB");
 	std::cout << "Created yolo." << std::endl;
 
 	qRegisterMetaType<cv::Mat>("cv::Mat");
@@ -67,7 +67,7 @@ int Script::ensureEnter(std::string rtsp_url, std::string modelPath){
 						mw->ui->te_onnxmessage->append(str);
 					 });
 	if(!yolo->loadModel(QString::fromStdString(modelPath))){
-		std::cerr << "model do not exist." << std::endl;
+		std::cerr << "Session load model failed." << std::endl;
 		return -1;
 	}
 	if ( is_rtspurl || 1) {

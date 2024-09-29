@@ -42,6 +42,7 @@ public:
 	void runModel(cv::Mat m, QString type, std::vector<cv::Mat> &retImg);
 	void stopModel();//停止检测
 
+    bool isCudaSupported(OrtSessionOptions* session_options);
 
 private:
 
