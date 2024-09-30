@@ -29,8 +29,9 @@ Script::~Script()
 
 void Script::Configurate(){
 	yolo = new Yolo(nullptr);
-	facenet = new FaceNet(L"D:/Program/project/gitee/facerecognition/Facenet/ONNX_model/full_model.onnx");
-	database = new FaceDatabase("172.18.107.19", "ubt", "ubt1212", "FaceDB");
+	facenet = new FaceNet(L"./Facenet/ONNX_model/full_model.onnx");
+	// database = new FaceDatabase("localhost", "root", "Youisshit1", "FaceDB");
+	database = new FaceDatabase("localhost", "root", "123456", "FaceDB");	// hhl
 	std::cout << "Created yolo." << std::endl;
 
 	qRegisterMetaType<cv::Mat>("cv::Mat");
