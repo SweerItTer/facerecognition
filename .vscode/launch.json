@@ -1,4 +1,4 @@
-{
+{// 调试器配置
     "configurations": [
         {
             "name": "CMake: CMake Script",

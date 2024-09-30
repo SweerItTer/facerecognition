@@ -68,7 +68,7 @@ int Script::ensureEnter(std::string rtsp_url, std::string modelPath){
 						mw->ui->te_onnxmessage->append(str);
 					 });
 	if(!yolo->loadModel(QString::fromStdString(modelPath))){
-		std::cerr << "model do not exist." << std::endl;
+		std::cerr << "Session load model failed." << std::endl;
 		return -1;
 	}
 	if ( is_rtspurl || 1) {

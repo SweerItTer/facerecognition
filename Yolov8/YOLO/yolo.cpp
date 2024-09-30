@@ -12,6 +12,21 @@ Yolo::~Yolo()
 	delete session;
 }
 
+bool Yolo::isCudaSupported(OrtSessionOptions* session_options) {
+    /*
+    try {
+        int device_id = 0;  // 尝试使用第一个 GPU 设备
+        OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, device_id);  // 直接传递 session_options 和设备 ID
+        return true;  // 如果成功，则支持 CUDA
+    } catch (const Ort::Exception& e) {
+        std::cerr << "CUDA not supported: " << e.what() << std::endl;
+        return false;  // 捕获错误，表明不支持 CUDA
+    }
+    */
+    return false;  // 目前不支持 CUDA
+}
+
+
 
 // 加载ONNX模型文件
 bool Yolo::loadModel(QString filename)
@@ -21,16 +36,27 @@ bool Yolo::loadModel(QString filename)
         return false; // 如果文件不存在，则直接返回
     }else{
         MYLOG<<"加载ONNX模型-开始";
-		env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Default");;
-		session = new Ort::Session(*env, filename.toStdWString().c_str(), Ort::SessionOptions{nullptr});
-        MYLOG<<"创建会话-成功";
+		env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Default");
+        Ort::SessionOptions session_options;
+
 
         // 检查是否有可用的CUDA设备（即检查是否可以使用GPU进行加速）
 //---------------
-// ONNX GPU
+        if(isCudaSupported(session_options)) {
+            MYLOG<<"将使用CUDA推理！";
+            emit signal_str("将使用GPU推理！");
+        } else {
+            MYLOG<<"将使用CPU推理！";
+            emit signal_str("将使用CPU推理！");
+        }
 //---------------
-
-        emit signal_str("将使用CPU推理！");
+        try {
+            session = new Ort::Session(*env, filename.toStdWString().c_str(), session_options);
+            MYLOG << "创建会话-成功";
+        } catch (const Ort::Exception& e) {
+            MYLOG << "创建会话失败: " << e.what();
+            return false;
+        }
 
         emit signal_str("**********模型信息**********");
 		printInputModel(session);

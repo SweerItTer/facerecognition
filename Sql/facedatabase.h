@@ -6,6 +6,7 @@
 #include <mysql.h>
 #include <vector>
 #include <cstring>
+#include "dataitem.h"
 
 class FaceDatabase 
 {
@@ -41,6 +42,7 @@ public:
         mysql_close(conn);
     }
 
+<<<<<<< HEAD
 /** 
  * @brief 插入特征向量到数据库
  * @param user_id           用户的id
@@ -48,12 +50,16 @@ public:
  * @return bool
  */
 	bool insertFeatures(const std::string& user_id, const std::vector<std::vector<float>>& feature_vectors) {
+=======
+	// 插入特征向量到数据库
+	bool insertFeatures(const std::string& name, const std::vector<std::vector<float>>& feature_vectors) {
+>>>>>>> 140bc1b0fbecbef26fd77747b155463c86a18684
 		if (feature_vectors.size() != 3) {
 			std::cerr << "Error: Exactly 3 feature vectors are required." << std::endl;
 			return false;
 		}
 
-		std::string query = "INSERT INTO FaceFeatures (user_id, feature_vector1, feature_vector2, feature_vector3) VALUES (?, ?, ?, ?)";
+		std::string query = "INSERT INTO FaceFeatures (name, feature_vector1, feature_vector2, feature_vector3) VALUES (?, ?, ?, ?)";
 
 		// 创建并执行 SQL 语句
 		MYSQL_STMT* stmt = mysql_stmt_init(conn);
@@ -67,8 +73,8 @@ public:
 		memset(bind, 0, sizeof(bind));
 
 		bind[0].buffer_type = MYSQL_TYPE_STRING;
-		bind[0].buffer = (void*)user_id.c_str();
-		bind[0].buffer_length = static_cast<unsigned long>(user_id.size());
+		bind[0].buffer = (void*)name.c_str();
+		bind[0].buffer_length = static_cast<unsigned long>(name.size());
 
 		std::string vector_str1(reinterpret_cast<const char*>(feature_vectors[0].data()), feature_vectors[0].size() * sizeof(float));
 		bind[1].buffer_type = MYSQL_TYPE_BLOB;
@@ -95,12 +101,19 @@ public:
 		return true; // 返回成功
 	}
 
+<<<<<<< HEAD
 /** 
  * @brief 获取所有用户的特征向量
  * @return all_features     
  */
     std::vector<std::pair<std::string, std::vector<std::vector<float>>>> getAllFeatures() {
         std::string query = "SELECT user_id, feature_vector1, feature_vector2, feature_vector3 FROM FaceFeatures";
+=======
+
+    // 获取所有用户的特征向量
+    std::vector<DataItem> getAllFeatures() {
+        std::string query = "SELECT name, feature_vector1, feature_vector2, feature_vector3 FROM FaceFeatures";
+>>>>>>> 140bc1b0fbecbef26fd77747b155463c86a18684
         if (mysql_query(conn, query.c_str())) {
             std::cerr << "Query failed: " + std::string(mysql_error(conn)) << std::endl;
             return {};
@@ -112,24 +125,39 @@ public:
         }
 
         MYSQL_ROW row;
-        std::vector<std::pair<std::string, std::vector<std::vector<float>>>> all_features;
+        std::vector<DataItem> all_features;
 
         while ((row = mysql_fetch_row(result))) {
-            std::string user_id = row[0];
-            std::vector<std::vector<float>> feature_vectors(3);
+            DataItem data_item;
+            data_item.name = row[0];  // 假设 name 是字符串
+            std::vector<float> feature_vectors[3];  // 临时存储三个特征向量
             unsigned long* lengths = mysql_fetch_lengths(result);
 
             for (int i = 1; i <= 3; ++i) {
-                if (lengths[i] % sizeof(float) == 0) {
-                    size_t num_floats = lengths[i] / sizeof(float);
-                    feature_vectors[i-1].resize(num_floats);
-                    std::memcpy(feature_vectors[i-1].data(), row[i], lengths[i]);
+                if (lengths[i] % sizeof(float) == 0) { // 检查数据长度是否是 float 的倍数
+                    size_t num_floats = lengths[i] / sizeof(float);// 计算 float 数目, 即数据库中存储的特征向量长度
+                    // 调整特征向量的大小并复制数据
+                    feature_vectors[i-1].resize(num_floats); // 重新分配空间, 将数据库中的数据读入 feature_vectors
+                    std::memcpy(feature_vectors[i-1].data(), row[i], lengths[i]); // 分配内存, 将数据库中的数据读入 feature_vectors
                 } else {
+                    // 长度不是 float 的倍数, 说明数据有问题
                     std::cerr << "Data length is not a multiple of float size!" << std::endl;
                 }
             }
+/*
+内存分配和复制数据,分别为:
+    需要复制到的特征向量的指针, 需要被复制的数据库中存储的特征向量指针, 以及特征向量的长度
+std::memcpy(feature_vectors[i-1].data(), row[i], lengths[i]);
+因为数据库里索引i是特征向量的编号,而对feature_vectors而言,当前位应当是i-1
+*/
+        
+        // 分别赋值给 DataItem 的 vector1, vector2, vector3
+        // move避免无用的复制, 节省内存
+        data_item.vector1 = std::move(feature_vectors[0]);
+        data_item.vector2 = std::move(feature_vectors[1]);
+        data_item.vector3 = std::move(feature_vectors[2]);
 
-            all_features.push_back({user_id, feature_vectors});
+        all_features.push_back(std::move(data_item));
         }
 
         mysql_free_result(result);
