@@ -42,18 +42,14 @@ public:
         mysql_close(conn);
     }
 
-<<<<<<< HEAD
 /** 
  * @brief 插入特征向量到数据库
  * @param user_id           用户的id
  * @param feature_vectors   人脸特征组
  * @return bool
  */
-	bool insertFeatures(const std::string& user_id, const std::vector<std::vector<float>>& feature_vectors) {
-=======
 	// 插入特征向量到数据库
 	bool insertFeatures(const std::string& name, const std::vector<std::vector<float>>& feature_vectors) {
->>>>>>> 140bc1b0fbecbef26fd77747b155463c86a18684
 		if (feature_vectors.size() != 3) {
 			std::cerr << "Error: Exactly 3 feature vectors are required." << std::endl;
 			return false;
@@ -101,19 +97,13 @@ public:
 		return true; // 返回成功
 	}
 
-<<<<<<< HEAD
 /** 
  * @brief 获取所有用户的特征向量
  * @return all_features     
  */
-    std::vector<std::pair<std::string, std::vector<std::vector<float>>>> getAllFeatures() {
-        std::string query = "SELECT user_id, feature_vector1, feature_vector2, feature_vector3 FROM FaceFeatures";
-=======
-
     // 获取所有用户的特征向量
     std::vector<DataItem> getAllFeatures() {
         std::string query = "SELECT name, feature_vector1, feature_vector2, feature_vector3 FROM FaceFeatures";
->>>>>>> 140bc1b0fbecbef26fd77747b155463c86a18684
         if (mysql_query(conn, query.c_str())) {
             std::cerr << "Query failed: " + std::string(mysql_error(conn)) << std::endl;
             return {};
