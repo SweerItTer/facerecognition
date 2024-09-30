@@ -17,6 +17,13 @@ Script::~Script()
 	std::cout << "player close." << std::endl;
 	delete yolo;
 	std::cout << "deleted yolo and mainwindow." << std::endl;
+	delete imageProcessor;
+
+	delete mw;
+	delete database;
+	delete yolo;
+	delete facenet;
+	delete session;
 
 }
 

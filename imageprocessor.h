@@ -29,6 +29,13 @@ public:
         // 创建线程
         processingThread = std::thread(&ImageProcessor::process, this);
         hnsw = new CustomHNSW(1000); // 最大元素数为1000
+
+        struct stat fileInfo;
+        if(stat(hnswconfg.c_str(), &fileInfo) == 0){
+            hnsw->loadFromFile(hnswconfg); // 从文件加载HNSW索引
+        } else {
+            buildHNSWIndex();  // 构建HNSW索引
+        }
     }
 
     ~ImageProcessor() {
@@ -40,6 +47,14 @@ public:
         if (processingThread.joinable()) {
             processingThread.join();
         }
+        if(hnsw->shouldUpdateIndex(hnswconfg)){
+            std::cout << "HNSW index updated." << std::endl;
+            hnsw->saveToFile(hnswconfg); // 保存HNSW索引到文件
+        }
+        delete hnsw; // HNSW索引
+        delete yolo;
+        delete facenet;
+        delete database;
     }
 
     void setImage(const cv::Mat& img) {
@@ -88,7 +103,7 @@ private:
     */
 
     // 处理多张人脸
-    void processFaces(const std::vector<cv::Mat>& result) {
+    std::string processFaces(const std::vector<cv::Mat>& result) {
 
         // std::vector<std::future<bool>> futures;
 
@@ -101,6 +116,8 @@ private:
 
             matched_user = hnsw->search(features, 3);// 特征搜索(返回最近3个匹配的用户名)
         }
+
+        return matched_user;
 
         /*
 
@@ -130,62 +147,65 @@ private:
         for(const auto& item : all_features) {
             hnsw->addItem(item); // 向HNSW索引中添加人脸特征
         }
+        std::cout << "HNSW index built." << std::endl;
     }
 
-void process() {
-    std::unique_lock<std::mutex> lock(mutex);  // 锁住互斥量，确保线程安全
-    std::string uname;
-    QPixmap pixmap;
-    
-    // 记录上一次调用时间
-    auto lastTime = std::chrono::steady_clock::now();
-    while (!stopFlag) {
-        // 等待条件变量的通知，直到有新图像或停止标志被触发
-        cv.wait(lock, [this] { return !image.empty() || stopFlag; });
+    void process() {
+        std::unique_lock<std::mutex> lock(mutex);  // 锁住互斥量，确保线程安全
+        std::string uname;
+        QPixmap pixmap;
 
-        if (stopFlag) break;  // 如果停止标志被设置，则退出循环
+        // 记录上一次调用时间
+        auto lastTime = std::chrono::steady_clock::now();
+        while (!stopFlag) {
+            // 等待条件变量的通知，直到有新图像或停止标志被触发
+            cv.wait(lock, [this] { return !image.empty() || stopFlag; });
 
-        // 获取当前时间
-        auto currentTime = std::chrono::steady_clock::now();
-        // 计算时间差
-        std::chrono::duration<double> elapsedSeconds = currentTime - lastTime;
-        
-        // 如果图像存在并且回调函数有效，则进行处理 , 每一秒处理一次图像
-        if (!image.empty() && callback && elapsedSeconds.count() >= 1.0) {
-            lastTime = currentTime;  // 更新上次调用时间
-            std::vector<cv::Mat> result;
+            if (stopFlag) break;  // 如果停止标志被设置，则退出循环
 
-            // 使用 YOLO 模型进行图像处理
-            yolo->runModel(image, "image", result);
-
-            // 检查 YOLO 输出结果是否有效
-            if (result.empty() || result[0].type() != CV_8UC3) {
-                qDebug() << "Received invalid cv::Mat.";
-                continue;
-            }
-            // 调用人脸处理函数处理 YOLO 检测到的人脸            
-            if (result.size() > 1)  processFaces(result);
+            // 获取当前时间
+            auto currentTime = std::chrono::steady_clock::now();
+            // 计算时间差
+            std::chrono::duration<double> elapsedSeconds = currentTime - lastTime;
             
-        } 
-        // 原图显示
-        QImage img((uchar*)(image.data), static_cast<int>(image.cols), 
-                            static_cast<int>(image.rows), static_cast<int>(image.step), QImage::Format_RGB888);
-        pixmap = QPixmap::fromImage(img.rgbSwapped());
-        // 使用回调函数返回处理后的图像
-        callback(pixmap);
-        // 释放处理后的图像，确保内存不会被反复占用
-        image.release();
+            // 如果图像存在并且回调函数有效，则进行处理 , 每一秒处理一次图像
+            if (!image.empty() && callback && elapsedSeconds.count() >= 1.0) {
+                lastTime = currentTime;  // 更新上次调用时间
+                std::vector<cv::Mat> result;
 
+                // 使用 YOLO 模型进行图像处理
+                yolo->runModel(image, "image", result);
+
+                // 检查 YOLO 输出结果是否有效
+                if (result.empty() || result[0].type() != CV_8UC3) {
+                    qDebug() << "Received invalid cv::Mat.";
+                    continue;
+                }
+                // 调用人脸处理函数处理 YOLO 检测到的人脸            
+                if (result.size() > 1)  std::string uname = processFaces(result);
+                
+            } 
+            // 原图显示
+            QImage img((uchar*)(image.data), static_cast<int>(image.cols), 
+                                static_cast<int>(image.rows), static_cast<int>(image.step), QImage::Format_RGB888);
+            pixmap = QPixmap::fromImage(img.rgbSwapped());
+            // 使用回调函数返回处理后的图像
+            callback(pixmap);
+            // 释放处理后的图像，确保内存不会被反复占用
+            image.release();
+
+        }
     }
-}
 
 
     std::thread processingThread;
     std::mutex mutex;
     std::condition_variable cv;
+    std::function<void(const QPixmap&)> callback;
     cv::Mat image;
     bool stopFlag;
-    std::function<void(const QPixmap&)> callback;
+
+    std::string hnswconfg = "./hnsw.bin";
 
     // Pool* pool = nullptr;  // 根据系统线程数创建线程池
     CustomHNSW *hnsw = nullptr; // HNSW索引
