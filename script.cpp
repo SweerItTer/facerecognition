@@ -30,7 +30,7 @@ Script::~Script()
 void Script::Configurate(){
 	yolo = new Yolo(nullptr);
 	facenet = new FaceNet(L"D:/Program/project/gitee/facerecognition/Facenet/ONNX_model/full_model.onnx");
-	database = new FaceDatabase("172.18.107.19", "ubt", "ubt1212", "FaceDB");
+	database = new FaceDatabase("8.134.146.151", "ubt", "ubt1212", "FaceDB" , 3366);
 	std::cout << "Created yolo." << std::endl;
 
 	qRegisterMetaType<cv::Mat>("cv::Mat");

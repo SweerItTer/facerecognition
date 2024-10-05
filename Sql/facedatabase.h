@@ -11,14 +11,14 @@
 class FaceDatabase 
 {
 public:
-    FaceDatabase(const std::string& host, const std::string& user, const std::string& password, const std::string& db_name) {
+    FaceDatabase(const std::string& host, const std::string& user, const std::string& password, const std::string& db_name, const unsigned int port = 3306) {
         conn = mysql_init(nullptr);
         if (!conn) {
             throw std::runtime_error("mysql_init() failed");
         }
 
         // 连接数据库
-        if (!mysql_real_connect(conn, host.c_str(), user.c_str(), password.c_str(), db_name.c_str(), 0, nullptr, 0)) {
+        if (!mysql_real_connect(conn, host.c_str(), user.c_str(), password.c_str(), db_name.c_str(), port, nullptr, 0)) {
             std::string error_message = "mysql_real_connect() failed: ";
             error_message += mysql_error(conn);
             mysql_close(conn);

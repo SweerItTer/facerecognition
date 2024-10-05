@@ -33,6 +33,7 @@ public:
         struct stat fileInfo;
         if(stat(hnswconfg.c_str(), &fileInfo) == 0){
             hnsw->loadFromFile(hnswconfg); // 从文件加载HNSW索引
+            std::cout << "HNSW index loaded." << std::endl;
         } else {
             buildHNSWIndex();  // 构建HNSW索引
         }
