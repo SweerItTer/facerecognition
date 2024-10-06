@@ -69,7 +69,7 @@
 ### 示例代码
 ```cpp
 // 生成特征向量的示例
-std::vector<float> feature_vector = facenet.output(face_image);
+std::vector<cv::Mat> face_images[3];
 
 // 特征向量的典型用途
 for (int i = 0; i < 3; ++i) {
@@ -86,7 +86,6 @@ for (int i = 0; i < 3; ++i) {
 CREATE DATABASE IF NOT EXISTS FaceDB;
 USE FaceDB;
 CREATE TABLE IF NOT EXISTS FaceFeatures (
-    id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     feature_vector1 VARBINARY(512) NOT NULL,
     feature_vector2 VARBINARY(512) NOT NULL,
@@ -134,7 +133,11 @@ cmake --build .
 ## 注意事项
 - 确保所有依赖项正确安装
 - 数据库配置需要根据实际环境调整
-- 模型文件需要单独下载（未包含在代码仓库中）
+- 模型文件在对应文件夹下
+```
+├── Yolov8/sourse/base.onnx
+├── Facenet/ONNX_model/full_model.onnx
+```
 
 ## 待办事项
 - [ ] 实现跨平台支持
