@@ -85,6 +85,7 @@ int Script::loadConfig() {
 		mw->ui->le_storagefile->setText(jsonObj.value("connectionName").toString(""));
 		// 初始化数据库连接
 		database = new FaceDatabase(host, userName, password, "FaceDB", port);
+		return 0;
 // ---------------------- 顺序问题: 当用户未设置数据库配置,将会出现数据库报错,直接退出程序 ---
 	}
 	else {
@@ -92,6 +93,7 @@ int Script::loadConfig() {
 		perror("Error message");
 		return -1;
 	}
+	return 0;
 }
 
 void Script::startProcessingTimer() {
