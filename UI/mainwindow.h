@@ -71,6 +71,8 @@ private slots:
 
 	void on_but_onnx_clicked();
 
+	void on_but_storagefile_clicked();
+
 private:
     bool m_leftMousePressed = false; //鼠标是否点中标题栏，是true，否false
     QPoint m_StartPoint ; // 窗口的全局位置

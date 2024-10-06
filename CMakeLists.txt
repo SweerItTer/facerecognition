@@ -116,7 +116,6 @@ set(PROJECT_SOURCES
     main.cpp
     script.cpp
     script.h
-    # pool.h
     imageprocessor.h
     ${RESOURCES}
     ${FORMS}

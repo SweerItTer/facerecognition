@@ -43,6 +43,7 @@ private:
 	bool string_compare(const std::string& s, const std::string& prefix){
 		return (s.compare(0, prefix.size(), prefix) == 0);
 	}
+	int loadConfig();
 
 	void prossPixSignal(QPixmap image);
 	void prossCVSignal(cv::Mat image);
@@ -51,6 +52,8 @@ private:
 
 	void startProcessingTimer();
 	void processNextFrame();
+
+	bool isinite = false;
 
 	QQueue<cv::Mat> frameQueue;
 	QMutex queueMutex;

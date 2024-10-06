@@ -104,7 +104,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="Resources/Resources.qrc">
+          <iconset>
            <normaloff>:/user.png</normaloff>:/user.png</iconset>
          </property>
          <property name="iconSize">
@@ -127,7 +127,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="Resources/Resources.qrc">
+          <iconset>
            <normaloff>:/home.png</normaloff>:/home.png</iconset>
          </property>
          <property name="iconSize">
@@ -144,7 +144,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="Resources/Resources.qrc">
+          <iconset>
            <normaloff>:/camare.png</normaloff>:/camare.png</iconset>
          </property>
          <property name="iconSize">
@@ -161,7 +161,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="Resources/Resources.qrc">
+          <iconset>
            <normaloff>:/data.png</normaloff>:/data.png</iconset>
          </property>
          <property name="iconSize">
@@ -178,7 +178,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="Resources/Resources.qrc">
+          <iconset>
            <normaloff>:/set.png</normaloff>:/set.png</iconset>
          </property>
          <property name="iconSize">
@@ -243,7 +243,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="Resources/Resources.qrc">
+          <iconset>
            <normaloff>:/off.png</normaloff>:/off.png</iconset>
          </property>
         </widget>
@@ -266,7 +266,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="Resources/Resources.qrc">
+          <iconset>
            <normaloff>:/max.png</normaloff>:/max.png</iconset>
          </property>
         </widget>
@@ -302,7 +302,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="Resources/Resources.qrc">
+          <iconset>
            <normaloff>:/min.png</normaloff>:/min.png</iconset>
          </property>
         </widget>
@@ -314,6 +314,9 @@
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="styleSheet">
        <string notr="true"/>
+      </property>
+      <property name="currentIndex">
+       <number>3</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QGridLayout" name="gridLayout_5">
@@ -858,7 +861,7 @@
         <item row="4" column="4">
          <widget class="QPushButton" name="but_storagefile">
           <property name="text">
-           <string>选择文件夹</string>
+           <string>修改数据库配置</string>
           </property>
          </widget>
         </item>
@@ -896,7 +899,7 @@
         <item row="4" column="0">
          <widget class="QLabel" name="lb_storagefile">
           <property name="text">
-           <string>身份信息存储位置：</string>
+           <string>数据库配置:</string>
           </property>
          </widget>
         </item>
@@ -991,10 +994,6 @@ p, li { white-space: pre-wrap; }
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="Resources/Resources.qrc"/>
-  <include location="Resources/Resources.qrc"/>
-  <include location="Resources/Resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

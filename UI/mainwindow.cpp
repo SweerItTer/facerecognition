@@ -1,5 +1,6 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "configure.h"
 
 #define MYLOG qDebug() << "[" << __FILE__ << ":" << __LINE__ << "]"
 
@@ -1017,5 +1018,13 @@ void MainWindow::on_but_onnx_clicked()
 		// 如果用户没有选择文件，可以处理这种情况
 		QMessageBox::warning(this, tr("No File Selected"), tr("No ONNX file was selected."));
 	}
+}
+
+
+void MainWindow::on_but_storagefile_clicked()
+{
+    // 打开文件对话框
+    Configure conf;
+    conf.databaseConfigure();
 }
 

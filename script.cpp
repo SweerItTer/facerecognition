@@ -7,6 +7,12 @@
 #include <QPixmap>
 #include <QSize>
 
+// json数据处理(数据库配置)
+#include <QJsonDocument>
+#include <QJsonObject>
+
+using namespace std;
+
 Script::~Script()
 {
 	if (p_thread) {
@@ -28,9 +34,12 @@ Script::~Script()
 }
 
 void Script::Configurate(){
+	int ret = loadConfig();// 读取配置文件
+	if (ret < 0) {
+		return;
+	}
 	yolo = new Yolo(nullptr);
 	facenet = new FaceNet(L"D:/Program/project/gitee/facerecognition/Facenet/ONNX_model/full_model.onnx");
-	database = new FaceDatabase("8.134.146.151", "ubt", "ubt1212", "FaceDB" , 3366);
 	std::cout << "Created yolo." << std::endl;
 
 	qRegisterMetaType<cv::Mat>("cv::Mat");
@@ -45,6 +54,44 @@ void Script::Configurate(){
 	});
 	std::cout << "Processor set callback." << std::endl;
 	startProcessingTimer();
+	isinite = true;
+}
+
+int Script::loadConfig() {
+	// 获取用户目录
+	QString configPath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+	QDir().mkpath(configPath);
+	QFile configFile(configPath + "/db_config.json");
+	// 读取配置文件
+	if (configFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		QByteArray jsonData = configFile.readAll();
+		configFile.close();
+		// 解析json数据
+		QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+		if (jsonDoc.isNull()) {
+			std::cerr << "Error : Failed to parse the configuration file." << std::endl;
+			perror("Error message");
+			return -1;
+		}
+		// 转换为json对象
+		QJsonObject jsonObj = jsonDoc.object();
+	
+		// 读取数据库配置
+		string host = jsonObj.value("host").toString("localhost").toStdString();
+		unsigned int port = jsonObj.value("port").toString("3306").toUInt();
+		string userName = jsonObj.value("userName").toString("root").toStdString();
+		string password = jsonObj.value("password").toString().toStdString();
+		// 设置数据库连接名称 在UI中显示
+		mw->ui->le_storagefile->setText(jsonObj.value("connectionName").toString(""));
+		// 初始化数据库连接
+		database = new FaceDatabase(host, userName, password, "FaceDB", port);
+// ---------------------- 顺序问题: 当用户未设置数据库配置,将会出现数据库报错,直接退出程序 ---
+	}
+	else {
+		std::cerr << "Error : Failed to open the configuration file." << std::endl;
+		perror("Error message");
+		return -1;
+	}
 }
 
 void Script::startProcessingTimer() {
@@ -68,6 +115,10 @@ void Script::processNextFrame() {
 }
 
 int Script::ensureEnter(std::string rtsp_url, std::string modelPath){
+	if (isinite) { //若数据库连接初始化出现问题,将会直接退出函数,因此需要判断是否已经初始化
+		std::cout << "Script is not inited." << std::endl;
+		Configurate();
+	}
 	bool is_rtspurl = string_compare(rtsp_url, "rtsp://");
 	QObject::connect(yolo, &Yolo::signal_str, this,
 					 [this] (QString str) {
@@ -116,6 +167,7 @@ void Script::prossCVSignal(cv::Mat image) {
 	}
 }
 
+// 更新UI显示图像
 void Script::updateUI(const QPixmap& image) {
 	QPixmap scaledPixmap = image.scaled(mw->ui->lb_camera->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	mw->ui->lb_camera->setPixmap(scaledPixmap);

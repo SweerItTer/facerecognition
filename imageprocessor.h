@@ -4,7 +4,7 @@
 #include <thread>
 #include <future>
 #include <mutex>
-#include <condition_variable>
+#include <condition_variable> // 流光法检测运动
 #include <memory>
 #include <functional>
 
@@ -156,22 +156,63 @@ private:
         std::string uname;
         QPixmap pixmap;
 
-        // 记录上一次调用时间
-        auto lastTime = std::chrono::steady_clock::now();
+        // 运动检测
+        cv::Mat pimg;  // 上一帧图像
+        cv::Mat nimg;  // 当前帧图像
+        cv::Mat grayPrev, grayNext;
+
         while (!stopFlag) {
             // 等待条件变量的通知，直到有新图像或停止标志被触发
             cv.wait(lock, [this] { return !image.empty() || stopFlag; });
-
+            
             if (stopFlag) break;  // 如果停止标志被设置，则退出循环
 
-            // 获取当前时间
-            auto currentTime = std::chrono::steady_clock::now();
-            // 计算时间差
-            std::chrono::duration<double> elapsedSeconds = currentTime - lastTime;
+            cv::resize(image, nimg, cv::Size(image.cols / 10, image.rows / 10));  // 将图像缩小为原来的 50%
+
+            // 将图像转换为灰度图
+            cv::cvtColor(nimg, grayNext, cv::COLOR_BGR2GRAY);
+            if (grayPrev.empty()) {
+                // 第一次循环，初始化上一个图像
+                grayPrev = grayNext.clone();    
+                continue;  // 不进行处理
+            }
+
+            // 计算光流
+            cv::Mat flow;
+            cv::calcOpticalFlowFarneback(grayPrev, grayNext, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
+
+
+            // 检查 flow 的维度
+            if (flow.empty() || flow.channels() != 2) {
+                std::cerr << "Flow calculation failed or has incorrect number of channels!" << std::endl;
+                continue;  // 跳过当前循环
+            }
+
+            // 使用第二种重载分割 flow
+            std::vector<cv::Mat> flowChannels;
+            cv::split(flow, flowChannels);  // flowChannels 将会包含 flow 的各个通道
+
+            // 检查分割结果
+            if (flowChannels.size() != 2) {
+                std::cerr << "Flow split did not produce two channels!" << std::endl;
+                return;  // 跳出或返回
+            }
+
+            // 提取 x 和 y 分量
+            cv::Mat flowX = flowChannels[0];
+            cv::Mat flowY = flowChannels[1];
+
+            // 计算光流的大小和方向
+            cv::Mat magnitude, angle;
+            cv::cartToPolar(flowX, flowY, magnitude, angle);
+
+            // 计算平均运动量
+            double avgMagnitude = cv::mean(magnitude)[0];
+            // std::cout << "Average motion magnitude: " << avgMagnitude << std::endl;
             
-            // 如果图像存在并且回调函数有效，则进行处理 , 每一秒处理一次图像
-            if (!image.empty() && callback && elapsedSeconds.count() >= 1.0) {
-                lastTime = currentTime;  // 更新上次调用时间
+            // 如果运动量大于阈值，则进行人脸检测
+            if (!image.empty() && callback && avgMagnitude > 1.0) {
+                std::cout << "Motion detected." << std::endl;
                 std::vector<cv::Mat> result;
 
                 // 使用 YOLO 模型进行图像处理
@@ -183,18 +224,23 @@ private:
                     continue;
                 }
                 // 调用人脸处理函数处理 YOLO 检测到的人脸            
-                if (result.size() > 1)  std::string uname = processFaces(result);
-                
-            } 
+                // 如果检测到人脸，处理并创建 QPixmap
+                if (result.size() > 1) std::string uname = processFaces(result);
+                QImage img((uchar*)(result[0].data), static_cast<int>(result[0].cols), 
+                                static_cast<int>(result[0].rows), static_cast<int>(result[0].step), QImage::Format_RGB888);
+                pixmap = QPixmap::fromImage(img.rgbSwapped());
+            }
             // 原图显示
             QImage img((uchar*)(image.data), static_cast<int>(image.cols), 
                                 static_cast<int>(image.rows), static_cast<int>(image.step), QImage::Format_RGB888);
             pixmap = QPixmap::fromImage(img.rgbSwapped());
+
             // 使用回调函数返回处理后的图像
             callback(pixmap);
+            // 更新上一帧图像
+            grayPrev = grayNext.clone();
             // 释放处理后的图像，确保内存不会被反复占用
             image.release();
-
         }
     }
 
