@@ -31,6 +31,12 @@ public:
         mysql_close(conn);
     }
 
+/** 
+ * @brief 插入特征向量到数据库
+ * @param user_id           用户的id
+ * @param feature_vectors   人脸特征组
+ * @return bool
+ */
 	// 插入特征向量到数据库
 	bool insertFeatures(const std::string& name, const std::vector<std::vector<float>>& feature_vectors) {
 		if (feature_vectors.size() != 3) {
@@ -80,7 +86,10 @@ public:
 		return true; // 返回成功
 	}
 
-
+/** 
+ * @brief 获取所有用户的特征向量
+ * @return all_features     
+ */
     // 获取所有用户的特征向量
     std::vector<DataItem> getAllFeatures() {
         std::string query = "SELECT name, feature_vector1, feature_vector2, feature_vector3 FROM FaceFeatures";

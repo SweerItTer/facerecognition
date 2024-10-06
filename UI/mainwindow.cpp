@@ -965,29 +965,6 @@ void MainWindow::on_pushButton_clicked()
     setLineChart();
     setSplineChart();
 }
-// ----------------------------------------------------------------------------------------------
-// void MainWindow::mysqlInit()
-// {
-//     QSqlDatabase mysql = QSqlDatabase::addDatabase("MySQL123456");
-//     mysql.setPort(3306);
-//     mysql.setHostName("127.0.0.1"); // 数据库服务器ip
-//     mysql.setUserName("root");  // 数据库用户名
-//     mysql.setPassword("123456");    // 密码
-//     mysql.setDatabaseName("identificationinformation"); // 使用哪个数据库
-//     if(!mysql.open())
-//     {
-//         MYLOG<<"mysql 打开失败";
-//         return;
-//     }
-
-//     model = new QSqlTableModel(this);
-//     model->setTable("identificationinformation");
-//     ui->identity->setModel(model);
-//     model->select();
-//     model->setHeaderData(0,Qt::Horizontal,"姓名");
-
-// }
-
 
 // ---------------- HJJ --------------- //
 void MainWindow::on_but_sure_clicked()
