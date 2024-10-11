@@ -32,7 +32,6 @@ bool Yolo::isCudaSupported(OrtSessionOptions* session_options) {
 bool Yolo::loadModel(QString filename)
 {
     if(!QFile::exists(filename)){// 检查文件是否存在
-       emit signal_str("**********未选中模型**********");
         return false; // 如果文件不存在，则直接返回
     }else{
         MYLOG<<"加载ONNX模型-开始";
@@ -44,10 +43,8 @@ bool Yolo::loadModel(QString filename)
 //---------------
         if(isCudaSupported(session_options)) {
             MYLOG<<"将使用CUDA推理！";
-            emit signal_str("将使用GPU推理！");
         } else {
             MYLOG<<"将使用CPU推理！";
-            emit signal_str("将使用CPU推理！");
         }
 //---------------
         try {
@@ -58,10 +55,8 @@ bool Yolo::loadModel(QString filename)
             return false;
         }
 
-        emit signal_str("**********模型信息**********");
 		printInputModel(session);
 		printOutputModel(session);
-//        MYLOG<<"模型加载成功，返回true\n";
         return true; // 模型加载成功，返回true
     }
 }

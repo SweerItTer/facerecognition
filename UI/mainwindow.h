@@ -10,8 +10,7 @@
 #include <QDebug>
 #include <QIcon>
 #include <QtCharts>
-// #include <QSqlDatabase>
-// #include <QSqlTableModel>
+
 QT_CHARTS_USE_NAMESPACE
 
 #include <functional> // For std::function
@@ -19,6 +18,7 @@ QT_CHARTS_USE_NAMESPACE
 #include <opencv2/opencv.hpp>
 #include "./qcustomplot.h"
 #include "../script.h"
+#include "UI/enterface.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -32,6 +32,7 @@ class MainWindow : public QMainWindow
 public:
 	explicit MainWindow(QWidget *parent = nullptr);
 	~MainWindow();
+    void StyleSheetInit();
     QPixmap getRoundRectPixmap(QPixmap srcPixMap, const QSize &size, int radius);
     QPointF splineSmooth(const QPointF &P0, const QPointF &P1, const QPointF &P2, const QPointF &P3, double t);
     void calculateControlPoints(const QVector<QPointF> &knots, QVector<QPointF> *firstControlPoints, QVector<QPointF> *secondControlPoints);
@@ -39,7 +40,11 @@ public:
     QVector<QPointF> randomNumbers(int n, int min, int max);
 
 	Ui::MainWindow *ui;
+    enterface *ui_enterface;
+
 private slots:
+    // void setYolo
+
     // 重绘窗口
     virtual void paintEvent(QPaintEvent *event) override; 
     virtual void mousePressEvent(QMouseEvent *event) override;
@@ -63,15 +68,13 @@ private slots:
     void setSplineChart();// 曲线图
 
     void on_pushButton_clicked();
-    // page2 数据库
-    // void mysqlInit();
 
     // page3 设置页面
 	void on_but_sure_clicked();
-
 	void on_but_onnx_clicked();
-
 	void on_but_storagefile_clicked();
+    void on_but_enterface_clicked();
+    
 
 private:
     bool m_leftMousePressed = false; //鼠标是否点中标题栏，是true，否false
@@ -82,10 +85,6 @@ private:
 
     QString but_on = QString("QPushButton{background-color: rgb(62, 69, 176);}");// 打开
     QString but_off = QString("QPushButton{background-color: rgba(0, 0, 0, 0);}");// 未打开
-
-
-
-
 
 
 	Script *callback = nullptr;

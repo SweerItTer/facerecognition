@@ -22,12 +22,31 @@ MainWindow::MainWindow(QWidget *parent)
     setLineChart();
     setSplineChart();
     // page2 数据库
-    // mysqlInit();
+
+    StyleSheetInit(); // 样式初始化
+
+
+
+
+
+
+}
+
+MainWindow::~MainWindow()
+{
+	delete callback;
+    delete ui;
+
+}
+
+// 样式初始化
+void MainWindow::StyleSheetInit()
+{
 
     // 个性化
     // 窗口
-    this->setWindowFlags(Qt::FramelessWindowHint);      //隐藏最大最小化等按键
-    this->setAttribute(Qt::WA_TranslucentBackground);         //设置窗口透明化
+    // this->setWindowFlags(Qt::FramelessWindowHint);      //隐藏最大最小化等按键
+    // this->setAttribute(Qt::WA_TranslucentBackground);         //设置窗口透明化
     this->setStyleSheet(QString("QMainWindow{"
                                  "background-color:rgb(236, 237, 255);"
                                  "border-radius: 10px;"
@@ -221,16 +240,6 @@ MainWindow::MainWindow(QWidget *parent)
     // 数据库界面
 
     // 设置界面
-
-
-
-}
-
-MainWindow::~MainWindow()
-{
-	delete callback;
-    delete ui;
-
 }
 
 // 重绘窗口
@@ -1003,5 +1012,11 @@ void MainWindow::on_but_storagefile_clicked()
     // 打开文件对话框
     Configure conf;
     conf.databaseConfigure();
+}
+
+void MainWindow::on_but_enterface_clicked()
+{
+    ui_enterface = new enterface;      
+    ui_enterface->show();
 }
 
