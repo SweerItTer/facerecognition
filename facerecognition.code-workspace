@@ -106,7 +106,8 @@
 			"string_view": "cpp",
 			"cinttypes": "cpp",
 			"unordered_set": "cpp",
-			"filesystem": "cpp"
+			"filesystem": "cpp",
+			"qapplication": "cpp"
 		}
 	}
 }
