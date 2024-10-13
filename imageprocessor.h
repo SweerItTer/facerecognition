@@ -211,7 +211,7 @@ private:
             // std::cout << "Average motion magnitude: " << avgMagnitude << std::endl;
             
             // 如果运动量大于阈值，则进行人脸检测
-            if (!image.empty() && callback && avgMagnitude > 1.0) {
+            if (!image.empty() && callback && avgMagnitude > 0.08) {
                 std::cout << "Motion detected." << std::endl;
                 std::vector<cv::Mat> result;
 
@@ -229,6 +229,13 @@ private:
                 QImage img((uchar*)(result[0].data), static_cast<int>(result[0].cols), 
                                 static_cast<int>(result[0].rows), static_cast<int>(result[0].step), QImage::Format_RGB888);
                 pixmap = QPixmap::fromImage(img.rgbSwapped());
+                // 使用回调函数返回处理后的图像
+                callback(pixmap);
+                // 更新上一帧图像
+                grayPrev = grayNext.clone();
+                // 释放处理后的图像，确保内存不会被反复占用
+                image.release();
+                continue;
             }
             // 原图显示
             QImage img((uchar*)(image.data), static_cast<int>(image.cols), 

@@ -984,8 +984,8 @@ void MainWindow::on_but_sure_clicked()
 	if(ret < 0){
         MYLOG << "Slot error: ";
 		MYLOG << "Fail to created thread";
-	}
-	ui->stackedWidget->setCurrentWidget(ui->page_2);
+	} else 	ui->stackedWidget->setCurrentWidget(ui->page_2);
+
 }
 
 void MainWindow::on_but_onnx_clicked()
@@ -994,7 +994,8 @@ void MainWindow::on_but_onnx_clicked()
 	QString fileName = QFileDialog::getOpenFileName(
 		this,                           // 父窗口
 		tr("Open ONNX File"),           // 对话框标题
-		"../../",                             // 默认路径
+		// "../../",                             // 默认路径
+        ":/",                             // 默认路径
 		tr("ONNX Files (*.onnx);;All Files (*)") // 文件过滤器
 	);
 	// 检查用户是否选择了文件
@@ -1005,7 +1006,23 @@ void MainWindow::on_but_onnx_clicked()
 		QMessageBox::warning(this, tr("No File Selected"), tr("No ONNX file was selected."));
 	}
 }
-
+void MainWindow::on_but_facenetonnx_clicked()
+{
+	// 打开文件对话框
+	QString fileName = QFileDialog::getOpenFileName(
+		this,                           // 父窗口
+		tr("Open ONNX File"),           // 对话框标题
+		":/UI/Resources",                             // 默认路径
+		tr("ONNX Files (*.onnx);;All Files (*)") // 文件过滤器
+	);
+	// 检查用户是否选择了文件
+	if (!fileName.isEmpty()) {
+		ui->le_facenetonnx->setText(fileName);
+	} else {
+		// 如果用户没有选择文件，可以处理这种情况
+		QMessageBox::warning(this, tr("No File Selected"), tr("No ONNX file was selected."));
+	}
+}
 
 void MainWindow::on_but_storagefile_clicked()
 {

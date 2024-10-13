@@ -8,7 +8,8 @@ class FaceNet
 {
 
 public:
-	FaceNet(const wchar_t* model_path);
+	// FaceNet(const wchar_t* model_path);
+	FaceNet(QString model_path);
 
 	~FaceNet();
 

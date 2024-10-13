@@ -12,5 +12,7 @@
         <file>lb_camaretest.png</file>
         <file>MaoKenWangXingYuan/MaoKenWangXingYuan-2.ttf</file>
         <file>comboBox_downarrow.png</file>
+        <file>best.onnx</file>
+        <file>full_model.onnx</file>
     </qresource>
 </RCC>

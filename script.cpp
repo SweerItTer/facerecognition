@@ -34,12 +34,25 @@ Script::~Script()
 }
 
 void Script::Configurate(){
+	// 数据库配置
 	int ret = loadConfig();// 读取配置文件
 	if (ret < 0) {
 		return;
 	}
 	yolo = new Yolo(nullptr);
-	facenet = new FaceNet(L"D:/Program/project/gitee/facerecognition/Facenet/ONNX_model/full_model.onnx");
+	
+	// facenet配置
+	try {
+		// facenet = new FaceNet(L"F:/0011/Qtcode/ganhui/facerecognition/Facenet/ONNX_model/full_model.onnx");
+		QString modelPath = mw->ui->le_facenetonnx->text();
+		// const wchar_t* modelPath = mw->ui->le_facenetonnx->text().toStdWString().c_str();
+		facenet = new FaceNet(modelPath);
+	}
+	catch(const Ort::Exception& e)
+	{
+		QMessageBox::critical(nullptr, "Facenet error", e.what());
+		return;
+	}
 	std::cout << "Created yolo." << std::endl;
 
 	qRegisterMetaType<cv::Mat>("cv::Mat");
@@ -62,6 +75,7 @@ int Script::loadConfig() {
 	QString configPath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
 	QDir().mkpath(configPath);
 	QFile configFile(configPath + "/db_config.json");
+	qDebug() << configPath;
 	// 读取配置文件
 	if (configFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
 		QByteArray jsonData = configFile.readAll();
@@ -84,7 +98,14 @@ int Script::loadConfig() {
 		// 设置数据库连接名称 在UI中显示
 		mw->ui->le_storagefile->setText(jsonObj.value("connectionName").toString(""));
 		// 初始化数据库连接
-		database = new FaceDatabase(host, userName, password, "FaceDB", port);
+		try {
+			database = new FaceDatabase(host, userName, password, "FaceDB", port);
+		}
+		catch (const std::runtime_error& e){
+			std::cerr << e.what() << std::endl;
+			QMessageBox::critical(nullptr, "Database error", e.what());
+			return -1;
+		}
 		return 0;
 // ---------------------- 顺序问题: 当用户未设置数据库配置,将会出现数据库报错,直接退出程序 ---
 	}
@@ -117,9 +138,10 @@ void Script::processNextFrame() {
 }
 
 int Script::ensureEnter(std::string rtsp_url, std::string modelPath){
-	if (isinite) { //若数据库连接初始化出现问题,将会直接退出函数,因此需要判断是否已经初始化
+	if (!isinite) { //若数据库连接初始化出现问题,将会直接退出函数,因此需要判断是否已经初始化
 		std::cout << "Script is not inited." << std::endl;
 		Configurate();
+		return -1;
 	}
 	bool is_rtspurl = string_compare(rtsp_url, "rtsp://");
 	QObject::connect(yolo, &Yolo::signal_str, this,

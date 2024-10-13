@@ -1,16 +1,19 @@
 #define _use_dnn false //opencv dnn无法加载模型(结构不允许)
 
+#include <QString>
 #include "facenet.h"
 #include <opencv2/opencv.hpp>
 #include <onnxruntime_cxx_api.h>
 #include <vector>
 
-FaceNet::FaceNet(const wchar_t* model_path)
+// FaceNet::FaceNet(const wchar_t* model_path)
+FaceNet::FaceNet(QString model_path)
 {
 	env = new Ort::Env(ORT_LOGGING_LEVEL_ERROR, "");
 	Ort::SessionOptions session_options;
 
-	session = new Ort::Session(*env, model_path, session_options);
+	session = new Ort::Session(*env, model_path.toStdWString().c_str(), session_options);
+
 }
 
 FaceNet::~FaceNet()

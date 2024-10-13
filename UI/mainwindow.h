@@ -72,6 +72,7 @@ private slots:
     // page3 设置页面
 	void on_but_sure_clicked();
 	void on_but_onnx_clicked();
+    void on_but_facenetonnx_clicked();
 	void on_but_storagefile_clicked();
     void on_but_enterface_clicked();
     
