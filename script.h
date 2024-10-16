@@ -18,14 +18,17 @@ class Yolo;
 class Script: public QObject {
 	Q_OBJECT  // 确保 Script 也可以使用 Qt 的信号槽机制
 public:
-	explicit Script(MainWindow *window = nullptr)
+	explicit Script(MainWindow *window = nullptr, Yolo *yolo_ = nullptr, FaceNet *facenet_ = nullptr)
 		: mw(window)
+		, yolo(yolo_)
+		, facenet(facenet_) // 正逆向传递, 对象是公用的(主窗口，脚本，录入界面)
 	{
 		Configurate();
 	}
 
 	~Script();
 	int ensureEnter(std::string rtsp_url, std::string modelPath);
+	void pasue();
 
 private:
 	PlayThread *p_thread = nullptr;
@@ -33,8 +36,8 @@ private:
 
 	MainWindow *mw = nullptr;
 	FaceDatabase *database = nullptr;
-	Yolo *yolo = nullptr;
-	FaceNet *facenet = nullptr;
+	Yolo *yolo;
+	FaceNet *facenet;
 	
 	Ort::Session *session = nullptr;
 	ImageProcessor *imageProcessor = nullptr;
@@ -43,7 +46,7 @@ private:
 	bool string_compare(const std::string& s, const std::string& prefix){
 		return (s.compare(0, prefix.size(), prefix) == 0);
 	}
-	int loadConfig();
+	int loadConfig(QFile &configFile);
 
 	void prossPixSignal(QPixmap image);
 	void prossCVSignal(cv::Mat image);

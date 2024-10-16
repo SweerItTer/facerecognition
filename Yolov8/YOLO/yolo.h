@@ -37,12 +37,17 @@ public:
 
     explicit Yolo(QObject *parent = nullptr);
     ~Yolo();
+
+    bool isLoaded = false;
+
     bool loadModel(QString onnxfile);//检测模型
 //    void runModel(QString o,QString f ,cv::Mat m,QString type);//运行模型
 	void runModel(cv::Mat m, QString type, std::vector<cv::Mat> &retImg);
-	void stopModel();//停止检测
+    void enterfaceRunModel(cv::Mat m, Ort::Session *&session, cv::Mat retImg);
 
     bool isCudaSupported(OrtSessionOptions* session_options);
+
+    void getSession(Ort::Session *&session_ret);
 
 private:
 
@@ -70,9 +75,9 @@ private:
     float aspect_mat;
     int fixed_w ;
     int fixed_h ;
-
+    Ort::Env *env = nullptr;
 	Ort::Session *session = nullptr;
-	Ort::Env *env = nullptr;
+	
 signals:
     void signal_str(QString str);//发给mainwidget的信号
     void signal_mat(cv::Mat mat);

@@ -32,15 +32,14 @@ bool Yolo::isCudaSupported(OrtSessionOptions* session_options) {
 bool Yolo::loadModel(QString filename)
 {
     if(!QFile::exists(filename)){// 检查文件是否存在
+        MYLOG << "文件不存在";
         return false; // 如果文件不存在，则直接返回
     }else{
         MYLOG<<"加载ONNX模型-开始";
 		env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Default");
         Ort::SessionOptions session_options;
 
-
-        // 检查是否有可用的CUDA设备（即检查是否可以使用GPU进行加速）
-//---------------
+//---------------// 检查是否有可用的CUDA设备（即检查是否可以使用GPU进行加速）
         if(isCudaSupported(session_options)) {
             MYLOG<<"将使用CUDA推理！";
         } else {
@@ -57,32 +56,46 @@ bool Yolo::loadModel(QString filename)
 
 		printInputModel(session);
 		printOutputModel(session);
+        isLoaded = true;
         return true; // 模型加载成功，返回true
     }
 }
 
 // 运行模型
 
-void Yolo::runModel(cv::Mat m, QString type ,std::vector<cv::Mat> &retImg)
+void Yolo::runModel(cv::Mat m, QString type, std::vector<cv::Mat> &retImg)
 {
-	// MYLOG<<"YOLO推理-开始";
 	filetype = type;//文件类型
-
 	if(filetype == "image"){
-//		MYLOG<<"对图像进行识别";
 		cv::Mat final_mat = PreprocessImage(m);
 		retImg = sessionRun(session,final_mat,m);
-
 	}else{
 		MYLOG << "不支持的类型";
         return;
 	}
 }
-
-//停止检测
-void Yolo::stopModel()
+/*
+void Yolo::enterfaceRunModel(cv::Mat m, Ort::Session *&session, cv::Mat &retImg)
 {
-    
+    cv::Mat final_mat = PreprocessImage(m);
+
+    std::vector<cv::Mat> retImg_vec = sessionRun(session, final_mat, m);
+
+    // 检查retImg_vec是否为空且至少包含一个元素
+    if (!retImg_vec.empty()) {
+        retImg = retImg_vec[0];
+    } else {
+        // 处理错误情况，例如打印错误信息或返回一个错误代码
+        std::cerr << "retImg_vec is empty!" << std::endl;
+        // 可能需要进一步处理，例如设置retImg为一个默认值或错误图像
+    }
+}
+*/
+
+// 获取创建好的会话
+void Yolo::getSession(Ort::Session *&session_ret)
+{
+    session_ret = session;
 }
 
 // 打印模型输入信息

@@ -618,8 +618,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1039</width>
-             <height>709</height>
+             <width>1040</width>
+             <height>714</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_4">
@@ -673,7 +673,7 @@
             <item row="2" column="1">
              <widget class="QLineEdit" name="le_onnx">
               <property name="text">
-               <string>D:/Program/project/gitee/facerecognition/Yolov8/sourse/best.onnx</string>
+               <string>F:/YOLO/ultralytics/runs/detect/backup/train_best/weights/best.onnx</string>
               </property>
              </widget>
             </item>
@@ -692,7 +692,11 @@
              </widget>
             </item>
             <item row="3" column="1">
-             <widget class="QLineEdit" name="le_facenetonnx"/>
+             <widget class="QLineEdit" name="le_facenetonnx">
+              <property name="text">
+               <string>F:/0011/Qtcode/ganhui/facerecognition/UI/Resources/full_model.onnx</string>
+              </property>
+             </widget>
             </item>
             <item row="3" column="2">
              <widget class="QPushButton" name="but_facenetonnx">

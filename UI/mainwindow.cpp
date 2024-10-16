@@ -11,8 +11,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-	callback = new Script(this);
-
+    // 将创建好的对象传递给callback
+	callback = new Script(this, yolo, facenet);
+    
     // 初始化
     // page0 首页统计图
     setBarChart();
@@ -24,10 +25,6 @@ MainWindow::MainWindow(QWidget *parent)
     // page2 数据库
 
     StyleSheetInit(); // 样式初始化
-
-
-
-
 
 
 }
@@ -975,19 +972,53 @@ void MainWindow::on_pushButton_clicked()
     setSplineChart();
 }
 
-// ---------------- HJJ --------------- //
-void MainWindow::on_but_sure_clicked()
+// 录入人脸信息
+void MainWindow::on_but_enterface_clicked()
 {
-	std::string rtsp_url = ui->le_rtsp->text().toStdString();
-	std::string modelPath = ui->le_onnx->text().toStdString();
-	int ret = callback->ensureEnter(rtsp_url, modelPath);
-	if(ret < 0){
-        MYLOG << "Slot error: ";
-		MYLOG << "Fail to created thread";
-	} else 	ui->stackedWidget->setCurrentWidget(ui->page_2);
+    ui_enterface = new enterface(nullptr, ui->le_onnx->text(),ui->le_facenetonnx->text(), yolo);
+    // 这里的yolo就会有isLoaded
+    if(!yolo->isLoaded){// 模型未加载
+        QMessageBox::warning(this, tr("Model error:"), tr("Model not found or loaded failed. \n Please enter the button to load the model and try again."));
+        MYLOG << "Fail to load model";
+        return;
+    } else {
+        callback->pasue();
+        ui_enterface->setWindowModality(Qt::ApplicationModal);
+        ui_enterface->show();
+        MYLOG << "Model loaded successfully";
+    }
 
 }
 
+// ---------------- HJJ --------------- //
+void MainWindow::on_but_sure_clicked()
+{
+    try { // 加载facenet模型
+        bool ret = facenet->loadModel(ui->le_facenetonnx->text());// 加载facenet模型
+        if (!ret)
+        {
+            std::cerr << "model path is empty!" << std::endl;
+            return;
+        }
+    }
+    catch(const Ort::Exception& e)
+    {
+        QMessageBox::critical(nullptr, "Facenet error", e.what());
+        return;
+    }
+	std::string rtsp_url = ui->le_rtsp->text().toStdString();
+	std::string modelPath = ui->le_onnx->text().toStdString(); // yolo 模型路径
+	int ret = callback->ensureEnter(rtsp_url, modelPath);
+	if(ret < 0){
+        // QMessageBox::warning(this, tr("Slot error:"), tr("Fail to created thread"));
+        MYLOG << "Slot error: ";
+		MYLOG << "Fail to created thread";
+	} else {
+        ui->stackedWidget->setCurrentWidget(ui->page_2);
+    }
+}
+
+// 选择YOLO模型文件
 void MainWindow::on_but_onnx_clicked()
 {
 	// 打开文件对话框
@@ -1006,6 +1037,8 @@ void MainWindow::on_but_onnx_clicked()
 		QMessageBox::warning(this, tr("No File Selected"), tr("No ONNX file was selected."));
 	}
 }
+
+// 选择facenet模型文件
 void MainWindow::on_but_facenetonnx_clicked()
 {
 	// 打开文件对话框
@@ -1024,6 +1057,7 @@ void MainWindow::on_but_facenetonnx_clicked()
 	}
 }
 
+// 数据库配置
 void MainWindow::on_but_storagefile_clicked()
 {
     // 打开文件对话框
@@ -1031,9 +1065,5 @@ void MainWindow::on_but_storagefile_clicked()
     conf.databaseConfigure();
 }
 
-void MainWindow::on_but_enterface_clicked()
-{
-    ui_enterface = new enterface;      
-    ui_enterface->show();
-}
+
 

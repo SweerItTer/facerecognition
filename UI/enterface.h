@@ -2,6 +2,17 @@
 #define ENTERFACE_H
 
 #include <QWidget>
+#include <QTimer>
+#include <QDebug>
+#include <QString>
+
+#include <vector>
+
+#include "opencv2/opencv.hpp"
+#include "./Yolov8/YOLO/yolo.h"
+
+// class MainWindow;
+class Yolo;
 
 namespace Ui {
 class enterface;
@@ -12,12 +23,26 @@ class enterface : public QWidget
     Q_OBJECT
 
 public:
-    explicit enterface(QWidget *parent = nullptr);
+    explicit enterface(QWidget *parent = nullptr, QString mPath = "", QString FaceMPath = "", Yolo *yolo = nullptr);
     ~enterface();
+
+    void setSession(Ort::Session *&session);
 
 private:
     Ui::enterface *ui;
+    
+    QTimer *timer;
+
+    cv::VideoCapture *capture;
+
     int page = 0;
+    QString YoloMPath_;
+    QString FaceMPath_;
+
+    // MainWindow *mw = nullptr;
+    Yolo *yolo_ = nullptr;
+    Ort::Session *session_;
+
 
 private slots:
     void on_but_data_clicked(); 
@@ -29,6 +54,20 @@ private slots:
     void on_but_next_clicked(); // next
 
     void StackedWInit(); //堆叠容器初始化
+
+    // 录入人脸相关槽函数
+    void on_but_camera_clicked(); // 打开摄像头
+    void updateFrame();
+
+    void on_but_panorama_clicked(); // 打开全景图
+    void on_but_facecut_clicked(); // 人脸分割
+    void on_bur_screenshot_clicked(); // 截图
+    void on_but_save_clicked(); // 保存图片
+    void on_but_cancel_clicked(); // 取消操作
+
+
+
+
 };
 
 #endif // ENTERFACE_H

@@ -9,9 +9,13 @@ class FaceNet
 
 public:
 	// FaceNet(const wchar_t* model_path);
-	FaceNet(QString model_path);
+	FaceNet(){}
 
 	~FaceNet();
+
+	bool loadModel(QString model_path);
+
+	bool isLoaded = false;
 
 	//模型输出
 	std::vector<float> outputs(const cv::Mat& image,//图片路径
@@ -28,5 +32,6 @@ private:
 
 	Ort::Env* env;
 	Ort::Session* session = nullptr;
+
 };
 #endif // FACENET_H

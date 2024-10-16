@@ -35,22 +35,29 @@ Script::~Script()
 
 void Script::Configurate(){
 	// 数据库配置
-	int ret = loadConfig();// 读取配置文件
+	QFile configFile;
+	int ret = loadConfig(configFile);// 读取配置文件
 	if (ret < 0) {
+		// 配置出现问题将删除错误的配置文件
+		configFile.remove();
 		return;
 	}
-	yolo = new Yolo(nullptr);
-	
+
+	// yolo = new Yolo(nullptr);
 	// facenet配置
-	try {
-		// facenet = new FaceNet(L"F:/0011/Qtcode/ganhui/facerecognition/Facenet/ONNX_model/full_model.onnx");
-		QString modelPath = mw->ui->le_facenetonnx->text();
-		// const wchar_t* modelPath = mw->ui->le_facenetonnx->text().toStdWString().c_str();
-		facenet = new FaceNet(modelPath);
-	}
-	catch(const Ort::Exception& e)
-	{
-		QMessageBox::critical(nullptr, "Facenet error", e.what());
+	// try {
+	// 	QString modelPath = mw->ui->le_facenetonnx->text();
+	// 	facenet = new FaceNet(modelPath);
+	// }
+	// catch(const Ort::Exception& e)
+	// {
+	// 	QMessageBox::critical(nullptr, "Facenet error", e.what());
+	// 	return;
+	// }
+
+	// 模型初始化放在主窗口里（构造函数）
+	if(!yolo->isLoaded || !facenet->isLoaded){
+		QMessageBox::critical(nullptr, "Init error", "Yolo or Facenet is nullptr.");
 		return;
 	}
 	std::cout << "Created yolo." << std::endl;
@@ -70,11 +77,11 @@ void Script::Configurate(){
 	isinite = true;
 }
 
-int Script::loadConfig() {
+int Script::loadConfig(QFile &configFile) {
 	// 获取用户目录
 	QString configPath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
 	QDir().mkpath(configPath);
-	QFile configFile(configPath + "/db_config.json");
+	configFile.setFileName(configPath + "/db_config.json");// 配置文件路径
 	qDebug() << configPath;
 	// 读取配置文件
 	if (configFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -137,22 +144,29 @@ void Script::processNextFrame() {
 	}
 }
 
-int Script::ensureEnter(std::string rtsp_url, std::string modelPath){
+
+int Script::ensureEnter(std::string rtsp_url, std::string modelPath)// 初始化检测线程
+{
+	// 判断初始化
 	if (!isinite) { //若数据库连接初始化出现问题,将会直接退出函数,因此需要判断是否已经初始化
 		std::cout << "Script is not inited." << std::endl;
+		
+		if(!yolo->loadModel(QString::fromStdString(modelPath))){
+			std::cerr << "Session load model failed." << std::endl;
+			return -1;
+		}
 		Configurate();
 		return -1;
 	}
+	// 确认拉流链接的合法性
 	bool is_rtspurl = string_compare(rtsp_url, "rtsp://");
 	QObject::connect(yolo, &Yolo::signal_str, this,
 					 [this] (QString str) {
 						mw->ui->te_onnxmessage->append(str);
 					 });
-	if(!yolo->loadModel(QString::fromStdString(modelPath))){
-		std::cerr << "Session load model failed." << std::endl;
-		return -1;
-	}
+	
 	if ( is_rtspurl || 1) {
+		// 创建拉流线程
 		if (p_thread) {
 			p_thread->Stop();
 			while(!p_thread->isFinished()){
@@ -164,7 +178,7 @@ int Script::ensureEnter(std::string rtsp_url, std::string modelPath){
 		p_thread = new PlayThread(rtsp_url);
 		std::cout << "PlayThread created." << std::endl;
 		p_thread->Start();
-
+		// 拉流信号
 		QObject::connect(p_thread, &PlayThread::pixframesSignal, this,
 						 &Script::prossPixSignal);
 		QObject::connect(p_thread, &PlayThread::cvframesSignal, this,
@@ -172,6 +186,17 @@ int Script::ensureEnter(std::string rtsp_url, std::string modelPath){
 		return 0;
 	} else return -1;
 	return 0;
+}
+
+void Script::pasue()
+{
+	if (p_thread) {
+		p_thread->Stop();
+		while(!p_thread->isFinished()){
+			std::cout << "Waitting...." << std::endl;
+		}
+		// delete p_thread; // 释放线程
+	}
 }
 
 void Script::prossPixSignal(QPixmap image){
@@ -197,5 +222,4 @@ void Script::updateUI(const QPixmap& image) {
 	mw->ui->lb_camera->setPixmap(scaledPixmap);
 
 }
-
 

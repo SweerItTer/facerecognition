@@ -6,22 +6,25 @@
 #include <onnxruntime_cxx_api.h>
 #include <vector>
 
-// FaceNet::FaceNet(const wchar_t* model_path)
-FaceNet::FaceNet(QString model_path)
-{
-	env = new Ort::Env(ORT_LOGGING_LEVEL_ERROR, "");
-	Ort::SessionOptions session_options;
-
-	session = new Ort::Session(*env, model_path.toStdWString().c_str(), session_options);
-
-}
-
 FaceNet::~FaceNet()
 {
 	if (session) {
 		session->release();
 		delete session;
 	 }
+}
+
+bool FaceNet::loadModel(QString model_path) {
+	if(model_path.isEmpty()){
+		std::cerr << "model path is empty!" << std::endl;
+		return isLoaded;
+	}
+	env = new Ort::Env(ORT_LOGGING_LEVEL_ERROR, "");
+	Ort::SessionOptions session_options;
+
+	session = new Ort::Session(*env, model_path.toStdWString().c_str(), session_options);
+	isLoaded = true;
+	return isLoaded;
 }
 
 //修改图片大小

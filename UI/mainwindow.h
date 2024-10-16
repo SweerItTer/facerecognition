@@ -20,11 +20,15 @@ QT_CHARTS_USE_NAMESPACE
 #include "../script.h"
 #include "UI/enterface.h"
 
+class Yolo;
+class FaceNet;
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+class enterface;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -40,7 +44,7 @@ public:
     QVector<QPointF> randomNumbers(int n, int min, int max);
 
 	Ui::MainWindow *ui;
-    enterface *ui_enterface;
+    
 
 private slots:
     // void setYolo
@@ -87,7 +91,10 @@ private:
     QString but_on = QString("QPushButton{background-color: rgb(62, 69, 176);}");// 打开
     QString but_off = QString("QPushButton{background-color: rgba(0, 0, 0, 0);}");// 未打开
 
-
+    Yolo *yolo = new Yolo(nullptr); // 先创建yolo对象
+    FaceNet *facenet = new FaceNet(); // facenet对象
 	Script *callback = nullptr;
+    enterface *ui_enterface = nullptr;
+    Ort::Session *session_ = nullptr;
 };
 #endif // MAINWINDOW_H

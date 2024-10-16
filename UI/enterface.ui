@@ -260,7 +260,7 @@
          <item>
           <widget class="QPushButton" name="but_camera">
            <property name="text">
-            <string>打开摄像头</string>
+            <string>open camera</string>
            </property>
           </widget>
          </item>
