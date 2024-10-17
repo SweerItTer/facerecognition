@@ -12,6 +12,7 @@ enterface::enterface(QWidget *parent, QString YoloMPath, QString FaceMPath, Yolo
     , timer(new QTimer(this))
     , yolo_(yolo) // 传递配置好的yolo对象
 {
+    setAttribute(Qt::WA_DeleteOnClose);
     ui->setupUi(this);
     
     page = ui->stackedWidget->currentIndex();
@@ -27,7 +28,10 @@ enterface::enterface(QWidget *parent, QString YoloMPath, QString FaceMPath, Yolo
 
 enterface::~enterface()
 {
+    capture->release();
     delete ui;
+    delete timer;
+    delete capture;
 }
 
 void enterface::setSession(Ort::Session *&session)
@@ -126,11 +130,16 @@ void enterface::updateFrame()
         *capture >> src;
         if(src.data == nullptr)
             return;
+    } else return;
+
+    if(src.empty()){
+        return;
     }
 
     // 使用 YOLO 模型进行图像处理
     yolo_->runModel(src, "image", retImg);
-    frame = retImg[0];     
+
+    retImg[0].copyTo(frame);     
     //将图像转换为qt能够处理的格式
     cv::cvtColor(frame,frame,cv::COLOR_BGR2RGB);
     cv::flip(frame,frame,1);

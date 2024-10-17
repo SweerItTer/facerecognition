@@ -26,14 +26,24 @@ MainWindow::MainWindow(QWidget *parent)
 
     StyleSheetInit(); // 样式初始化
 
-
 }
 
 MainWindow::~MainWindow()
 {
-	delete callback;
+    if (yolo) {
+        delete yolo;
+        yolo = nullptr; // 将指针设为nullptr
+    }
+    if (facenet) {
+        delete facenet;
+        facenet = nullptr; // 将指针设为nullptr
+    }
+    if (callback) {
+        delete callback;
+        callback = nullptr;
+    }
+    delete ui_enterface;
     delete ui;
-
 }
 
 // 样式初始化
@@ -976,6 +986,11 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::on_but_enterface_clicked()
 {
     ui_enterface = new enterface(nullptr, ui->le_onnx->text(),ui->le_facenetonnx->text(), yolo);
+    ui_enterface->setCallback([this]() {
+        if (callback) {
+            callback->resume();
+        }
+    });
     // 这里的yolo就会有isLoaded
     if(!yolo->isLoaded){// 模型未加载
         QMessageBox::warning(this, tr("Model error:"), tr("Model not found or loaded failed. \n Please enter the button to load the model and try again."));

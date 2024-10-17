@@ -29,6 +29,7 @@ public:
 	~Script();
 	int ensureEnter(std::string rtsp_url, std::string modelPath);
 	void pasue();
+	void resume();
 
 private:
 	PlayThread *p_thread = nullptr;

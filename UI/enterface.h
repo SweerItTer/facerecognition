@@ -5,13 +5,13 @@
 #include <QTimer>
 #include <QDebug>
 #include <QString>
+#include <QCloseEvent>
 
 #include <vector>
 
 #include "opencv2/opencv.hpp"
 #include "./Yolov8/YOLO/yolo.h"
 
-// class MainWindow;
 class Yolo;
 
 namespace Ui {
@@ -27,6 +27,9 @@ public:
     ~enterface();
 
     void setSession(Ort::Session *&session);
+    void setCallback(std::function<void()> callback_){
+        callback = callback_;
+    }
 
 private:
     Ui::enterface *ui;
@@ -65,8 +68,15 @@ private slots:
     void on_but_save_clicked(); // 保存图片
     void on_but_cancel_clicked(); // 取消操作
 
+// --------
+private:
+    // 关闭事件
+    void closeEvent(QCloseEvent *event){
+        callback(); // 调用回调函数(继续线程)
+        event->accept();
+    }
 
-
+    std::function<void()> callback; // 无返回,无参数
 
 };
 
