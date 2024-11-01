@@ -5,12 +5,9 @@
 #include <QTimer>
 #include <QDebug>
 #include <QString>
-<<<<<<< HEAD
 #include <QPainter>
 #include <QMouseEvent>
-=======
 #include <QCloseEvent>
->>>>>>> 474f277b4b09ca6b0e46b4e0db1b2056b3611a5c
 
 #include <vector>
 
@@ -81,14 +78,13 @@ private slots:
     void on_but_panorama_clicked(); // 打开全景图
     void on_but_facecut_clicked(); // 人脸分割
     void on_but_save_clicked(); // 保存图片
-<<<<<<< HEAD
 
     void on_but_delet1_clicked(); // 删除图片1
     void on_but_delet2_clicked(); // 删除图片2
     void on_but_delet3_clicked(); // 删除图片3
-=======
-    void on_but_cancel_clicked(); // 取消操作
 
+    void on_but_end_clicked(); // 结束录入
+    void on_but_nextpeople_clicked(); // 录入下一个人
 // --------
 private:
     // 关闭事件
@@ -98,10 +94,6 @@ private:
     }
 
     std::function<void()> callback; // 无返回,无参数
->>>>>>> 474f277b4b09ca6b0e46b4e0db1b2056b3611a5c
-
-    void on_but_end_clicked(); // 结束录入
-    void on_but_nextpeople_clicked(); // 录入下一个人
 };
 
 #endif // ENTERFACE_H
