@@ -25,8 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     // page2 数据库
 
     StyleSheetInit(); // 样式初始化
-
-
+    on_but_set_clicked(); 
 }
 
 MainWindow::~MainWindow()
@@ -36,23 +35,123 @@ MainWindow::~MainWindow()
 
 }
 
+
 // 样式初始化
 void MainWindow::StyleSheetInit()
 {
-
-    // 个性化
     // 窗口
-    // this->setWindowFlags(Qt::FramelessWindowHint);      //隐藏最大最小化等按键
-    // this->setAttribute(Qt::WA_TranslucentBackground);         //设置窗口透明化
+    this->setWindowFlags(Qt::FramelessWindowHint);      //隐藏最大最小化等按键
+    this->setAttribute(Qt::WA_TranslucentBackground);         //设置窗口透明化
     this->setStyleSheet(QString("QMainWindow{"
                                  "background-color:rgb(236, 237, 255);"
                                  "border-radius: 10px;"
-                                 "border-style:solid;"
-                                 "border-width:1px;"
+                                 "border-style:none;"
+                                 "border-width:0px;"
                                  "border-color:rgb(213, 213, 213);"
                                  "}"));
 
     // 侧边栏
+    ui->but_user->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    ui->but_user->setStyleSheet(QString("QToolButton{"
+                                    "background-color: rgba(255, 255, 255, 0);"
+                                    "border-radius:8px;"
+                                    "border-style:none;"
+                                    "border-width:1px;"
+                                    "border-color:rgba(0, 0, 0, 0);"
+                                    "font-size:20px;"
+                                    "color: rgb(255, 255, 255);"
+                                    "}"
+                                    "QToolButton:hover{"
+                                    "background-color: rgba(103, 188, 234, 0.3);"
+                                    "color: rgb(82, 85, 193);"
+                                    "}"
+                                    "QToolButton:checked {"
+                                    "background-color: rgba(245, 139, 89, 0.5);"
+                                    "color: rgb(255, 255, 255);"
+                                    "}"));
+
+    QButtonGroup *group = new QButtonGroup(this);
+    // group->addButton(ui->but_user, 0);
+    group->addButton(ui->but_home, 0);
+    group->addButton(ui->but_camera, 1);    
+    group->addButton(ui->but_data, 2);
+    group->addButton(ui->but_set, 3);
+    group->setExclusive(true);
+
+    // ui->but_user->setCheckable(true);
+    ui->but_home->setCheckable(true);
+    ui->but_camera->setCheckable(true);
+    ui->but_data->setCheckable(true);
+    ui->but_set->setCheckable(true);
+
+    QString sidebar_butStyle = QString("QPushButton{"
+                                    // "text-align: left;" // 文字左对齐
+                                    // "icon-align: left;" // 图标左对齐
+                                    // "padding-left: 10px;" // 增加左侧内边距，为图标留出空间
+                                    "background-color: rgba(255, 255, 255, 0);"
+                                    "border-radius:8px;"
+                                    "border-style:none;"
+                                    "border-width:1px;"
+                                    "border-color:rgba(0, 0, 0, 0);"
+                                    "font-size:20px;"
+                                    "font-weight:bold;"
+                                    "color: rgb(255, 255, 255);"
+                                    "}"
+                                    // "QPushButton:icon {"
+                                    // "margin-right: 8px;" // 设置图标与文本之间的间距
+                                    // "}"
+                                    "QPushButton:hover{"
+                                    "background-color: rgba(179, 222, 245, 0.5);"
+                                    "}"
+                                    "QPushButton:checked {"
+                                    "background-color: rgba(255, 255, 255, 0.8);"
+                                    "color: rgb(82, 85, 193);"
+                                    "}");
+    
+    QIcon homeIcon;
+    homeIcon.addFile(":/home.png", QSize(), QIcon::Normal);     // 正常状态
+    homeIcon.addFile(":/home_on.png", QSize(), QIcon::Active); // 按下状态
+    ui->but_home->setIcon(homeIcon);
+    ui->but_home->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_home->setStyleSheet(sidebar_butStyle);
+
+    QIcon cameraIcon;
+    cameraIcon.addFile(":/camare.png", QSize(), QIcon::Normal);     // 正常状态
+    cameraIcon.addFile(":/camare_on.png", QSize(), QIcon::Active); // 按下状态
+    ui->but_camera->setIcon(cameraIcon);
+    ui->but_camera->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_camera->setStyleSheet(sidebar_butStyle);
+
+    QIcon dataIcon;
+    dataIcon.addFile(":/data.png", QSize(), QIcon::Normal);     // 正常状态
+    dataIcon.addFile(":/data_on.png", QSize(), QIcon::Active); // 按下状态
+    ui->but_data->setIcon(dataIcon);
+    ui->but_data->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_data->setStyleSheet(sidebar_butStyle);
+
+    QIcon setIcon;
+    setIcon.addFile(":/set.png", QSize(), QIcon::Normal);     // 正常状态
+    setIcon.addFile(":/set_on.png", QSize(), QIcon::Active); // 按下状态
+    ui->but_set->setIcon(setIcon);
+    ui->but_set->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_set->setStyleSheet(sidebar_butStyle);
+
+    QIcon userIcon;
+    userIcon.addFile(":/user.png", QSize(), QIcon::Normal);     // 正常状态
+    ui->but_user->setIcon(userIcon);
+    ui->but_user->setIconSize(QSize(80, 80)); // 设置图标的大小
+    ui->but_user->setStyleSheet(QString("QToolButton{"
+                                        "background-color: rgba(255, 255, 255, 0);"
+                                        "padding-top: 15px;"
+                                        "border-radius:8px;"
+                                        "border-style:none;"
+                                        "border-width:1px;"
+                                        "border-color:rgba(0, 0, 0, 0);"
+                                        "font-size:16px;"
+                                        "font-weight:bold;"
+                                        "color: rgb(255, 255, 255);"
+                                        "}"));
+
     ui->widget->setStyleSheet(QString("QWidget{"
                                         "background-color: rgb(116, 121, 206);"
                                         "border-top-left-radius:0px;"
@@ -62,20 +161,7 @@ void MainWindow::StyleSheetInit()
                                         "border-style:solid;"
                                         "border-width:1px;"
                                         "border-color:rgb(116, 121, 206);"
-                                        "}"
-                                        "QPushButton{"
-                                        "background-color: rgba(0, 0, 0, 0);"
-                                        "border-radius:0px;"
-                                        "border-style:none;"
-                                        "border-right-width:0px"
-                                        "}"
-                                        "QPushButton:hover{"
-                                        "background-color: rgba(103, 188, 234, 0.5);"
-                                        "}"
-                                        "QPushButton:checked{"
-                                        "background-color: rgb(62, 69, 176);"
                                         "}"));
-
 
 
     // 标题栏
@@ -85,9 +171,9 @@ void MainWindow::StyleSheetInit()
                                         "border-top-right-radius:10px;"
                                         "border-bottom-right-radius:0px;"
                                         "border-bottom-left-radius:0px;"
-                                        "border-style:solid;"
+                                        "border-style:none;"
                                         "border-width:1px;"
-                                        "border-color:rgb(82, 85, 193);"
+                                        "border-color:rgba(82, 85, 193, 0);"
                                         "min-height: 30px;"
                                         "}"
                                         "QPushButton{"
@@ -143,7 +229,9 @@ void MainWindow::StyleSheetInit()
                                     "border-style:solid;"
                                     "border-width:2px;"
                                     "border-color:rgb(208, 208, 211);"
-                                    "background-color: rgba(255, 255, 255,0);"
+                                    "background-color: rgb(255, 255, 255);"
+                                    "selection-background-color: rgb(82, 85, 193);" // 设置选中项的背景色
+                                    "selection-color: rgb(255, 255, 255);" // 设置选中项的文字颜色
                                     "}");
 
     ui->box_spline->setStyleSheet(comboboxStyle);
@@ -170,6 +258,17 @@ void MainWindow::StyleSheetInit()
                                              "border-width:1px;"
                                              "border-color:rgb(255,255,255);"
                                              "}"));
+
+    // 主页按键样式
+    QString QPBut_Style = QString("QPushButton{"
+                                "background-color: rgb(82, 85, 193);"
+                                "border-radius:20px;"
+                                "border-style:solid;"
+                                "}"
+                                "QPushButton:hover{"
+                                "background-color: rgba(103, 188, 234, 0.5);"
+                                "}");
+    ui->pushButton->setStyleSheet(QPBut_Style);
     ui->widget_rgbar->setStyleSheet(QString("QWidget{"
                                             "background-color: rgb(255, 255, 255);"
                                             "border-radius:20px;"
@@ -177,14 +276,7 @@ void MainWindow::StyleSheetInit()
                                             "border-width:1px;"
                                             "border-color:rgb(255,255,255);"
                                             "}"
-                                        "QPushButton{"
-                                        "background-color: rgb(82, 85, 193);"
-                                        "border-radius:20px;"
-                                        "border-style:solid;"
-                                        "}"
-                                        "QPushButton:hover{"
-                                        "background-color: rgba(103, 188, 234, 0.5);"
-                                        "}"));
+                                            ));
 
     ui->box_pie->setStyleSheet(comboboxStyle);
     ui->widget_pie->setStyleSheet(QString("QWidget{"
@@ -205,13 +297,12 @@ void MainWindow::StyleSheetInit()
                                                "border-width:1px;"
                                                "border-color:rgb(255,255,255);"
                                                "}"));
-    ui->widget_4->setStyleSheet(QString("QWidget{"
-                                               "background-color: rgb(255, 255, 255);"
-                                               "border-radius:20px;"
-                                               "border-style:solid;"
-                                               "border-width:1px;"
-                                               "border-color:rgb(255,255,255);"
-                                               "}"));
+    ui->widget_4->setStyleSheet(QString("QWidget{background-color: rgb(255, 255, 255);"
+                                        "border-radius:20px;"
+                                        "border-style:solid;"
+                                        "border-width:1px;"
+                                        "border-color:rgb(255,255,255);"
+                                        "}"));
 
 
     // 摄像头界面
@@ -237,6 +328,82 @@ void MainWindow::StyleSheetInit()
     // 数据库界面
 
     // 设置界面
+    // 按钮样式
+    QString setPage_butStyle = QString("QPushButton{"
+                                "background-color: rgba(255, 255, 255, 0.8);"
+                                "border-radius:17px;"
+                                "border-style:solid;"
+                                "border-width:1px;"
+                                "border-color:rgb(190, 190, 190);"
+                                "font-size:18px;"
+                                "color: rgb(0, 0, 0);"
+                                "}"
+                                "QPushButton:hover{"
+                                "border-color:rgb(82, 85, 193);"
+                                "color: rgb(82, 85, 193);"
+                                "}");                                   
+    ui->but_rtsp->setStyleSheet(setPage_butStyle);
+    ui->but_onnx->setStyleSheet(setPage_butStyle);
+    ui->but_facenetonnx->setStyleSheet(setPage_butStyle);
+    ui->but_storagefile->setStyleSheet(setPage_butStyle);
+    ui->but_enterface->setStyleSheet(setPage_butStyle);
+    ui->but_message->setStyleSheet(setPage_butStyle);
+
+    ui->but_sure->setStyleSheet(QString("QPushButton{"
+                                "background-color: rgb(82, 85, 193);"
+                                "border-radius:17px;"
+                                "border-style:solid;"
+                                "border-width:1px;"
+                                "border-color: rgb(255, 255, 255);"
+                                "font-size:18px;"
+                                "color: rgb(255, 255, 255);"
+                                "}"
+                                "QPushButton:hover{"
+                                "background-color: rgba(179, 222, 245, 0.8);"
+                                "border-color: rgb(82, 85, 193);"
+                                "color: rgb(82, 85, 193);"
+                                "}"));
+           
+    // 输入框样式
+    QString setPage_inputStyle = QString("QLineEdit{"
+                                "background-color: rgba(255, 255, 255, 0.8);"
+                                "border-radius:5px;"
+                                "border-style:solid;"
+                                "border-width:1px;"
+                                "border-color:rgb(190, 190, 190);"
+                                "font-size:18px;"
+                                "color: rgb(0, 0, 0);"
+                                "}");
+    ui->le_rtsp->setStyleSheet(setPage_inputStyle);
+    ui->le_onnx->setStyleSheet(setPage_inputStyle);
+    ui->le_facenetonnx->setStyleSheet(setPage_inputStyle);
+    ui->le_storagefile->setStyleSheet(setPage_inputStyle);
+    ui->le_message->setStyleSheet(setPage_inputStyle);
+    ui->le_facedata->setStyleSheet(setPage_inputStyle);
+    
+    // QTextEdit样式
+    ui->te_onnxmessage->setStyleSheet(QString("QTextEdit{"
+                                    "background-color: rgba(255, 255, 255, 0.8);"
+                                    "border-radius:5px;"
+                                    "border-style:solid;"
+                                    "border-width:1px;"
+                                    "border-color:rgb(190, 190, 190);"
+                                    "font-size:18px;"
+                                    "color: rgb(0, 0, 0);"
+                                    "}"));
+    // 标签样式 
+    QString setPage_labelStyle = QString("QLabel{"
+                                "font-size:18px;"
+                                "color: rgb(0, 0, 0);"
+                                "}");
+    ui->lb_rtsp->setStyleSheet(setPage_labelStyle);
+    ui->lb_onnx->setStyleSheet(setPage_labelStyle);
+    ui->lb_facenet->setStyleSheet(setPage_labelStyle);
+    ui->lb_storagefile->setStyleSheet(setPage_labelStyle);
+    ui->lb_message->setStyleSheet(setPage_labelStyle);
+    ui->lb_enterface->setStyleSheet(setPage_labelStyle);
+
+
 }
 
 // 重绘窗口
@@ -326,7 +493,6 @@ QPixmap MainWindow::getRoundRectPixmap(QPixmap srcPixMap, const QSize & size, in
 void MainWindow::on_but_home_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
-
 }
 
 // 摄像机
@@ -949,7 +1115,9 @@ void MainWindow::on_but_min_clicked()
 // 关闭窗口
 void MainWindow::on_but_off_clicked()
 {
-    QApplication::quit();//立即终止应用程序
+    // QApplication::quit();//立即终止应用程序
+    // close(); // 关闭窗口
+    MainWindow::close();
 }
 
 // use to test
@@ -975,10 +1143,11 @@ void MainWindow::on_pushButton_clicked()
 // 录入人脸信息
 void MainWindow::on_but_enterface_clicked()
 {
-    ui_enterface = new enterface(nullptr, ui->le_onnx->text(),ui->le_facenetonnx->text(), yolo);
+    ui_enterface = new enterface(nullptr, yolo);
     // 这里的yolo就会有isLoaded
     if(!yolo->isLoaded){// 模型未加载
-        QMessageBox::warning(this, tr("Model error:"), tr("Model not found or loaded failed. \n Please enter the button to load the model and try again."));
+        QMessageBox::warning(this, tr("Model error:"), 
+            tr("Model not found or loaded failed. \n Please enter the button to load the model and try again."));
         MYLOG << "Fail to load model";
         return;
     } else {

@@ -74,23 +74,6 @@ void Yolo::runModel(cv::Mat m, QString type, std::vector<cv::Mat> &retImg)
         return;
 	}
 }
-/*
-void Yolo::enterfaceRunModel(cv::Mat m, Ort::Session *&session, cv::Mat &retImg)
-{
-    cv::Mat final_mat = PreprocessImage(m);
-
-    std::vector<cv::Mat> retImg_vec = sessionRun(session, final_mat, m);
-
-    // 检查retImg_vec是否为空且至少包含一个元素
-    if (!retImg_vec.empty()) {
-        retImg = retImg_vec[0];
-    } else {
-        // 处理错误情况，例如打印错误信息或返回一个错误代码
-        std::cerr << "retImg_vec is empty!" << std::endl;
-        // 可能需要进一步处理，例如设置retImg为一个默认值或错误图像
-    }
-}
-*/
 
 // 获取创建好的会话
 void Yolo::getSession(Ort::Session *&session_ret)
@@ -189,7 +172,15 @@ cv::Mat Yolo::PreprocessImage(cv::Mat m)
     return final_mat;
 }
 
-//运行模型，画框
+
+/**
+ * @brief 运行模型，画框
+ * @param Ort::Session *session     创建好的会话
+ * @param cv::Mat final_mat         原图
+ * @param cv::Mat mat               画好框的原图
+ * @return std::vector<cv::Mat> re_mat       返回的图集[mat,cropped]
+ *         mat:原图，cropped:裁剪后的图
+ */
 std::vector<cv::Mat> Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
 {
     //----------

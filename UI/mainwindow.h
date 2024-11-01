@@ -85,9 +85,6 @@ private:
     bool m_leftMousePressed = false; //鼠标是否点中标题栏，是true，否false
     QPoint m_StartPoint ; // 窗口的全局位置
 
-    // QSqlTableModel *model;
-    // QSqlDatabase mysql;
-
     QString but_on = QString("QPushButton{background-color: rgb(62, 69, 176);}");// 打开
     QString but_off = QString("QPushButton{background-color: rgba(0, 0, 0, 0);}");// 未打开
 

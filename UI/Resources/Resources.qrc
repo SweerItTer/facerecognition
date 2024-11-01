@@ -1,18 +1,28 @@
 <RCC>
     <qresource prefix="/">
         <file>camare.png</file>
+        <file>camare_on.png</file>
         <file>data.png</file>
+        <file>data_on.png</file>
         <file>home.png</file>
+        <file>home_on.png</file>
         <file>max.png</file>
         <file>min.png</file>
         <file>off.png</file>
         <file>Resources.qrc</file>
         <file>set.png</file>
+        <file>set_on.png</file>
         <file>user.png</file>
         <file>lb_camaretest.png</file>
         <file>MaoKenWangXingYuan/MaoKenWangXingYuan-2.ttf</file>
         <file>comboBox_downarrow.png</file>
         <file>best.onnx</file>
         <file>full_model.onnx</file>
+        <file>del.png</file>
+        <file>del_on.png</file>
+        <file>tick.png</file>
+        <file>tick_on.png</file>
+        <file>rail.png</file>
+        <file>rail_on.png</file>
     </qresource>
 </RCC>
