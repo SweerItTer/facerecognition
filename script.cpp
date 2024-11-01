@@ -21,15 +21,20 @@ Script::~Script()
 	}
 	delete session;
 	std::cout << "player close." << std::endl;
-	delete yolo;
+	if (yolo) {
+    	delete yolo;
+    	yolo = nullptr; // 将指针设为nullptr
+	}
+
+	if(facenet){
+		delete facenet;
+		facenet = nullptr;
+	}
 	std::cout << "deleted yolo and mainwindow." << std::endl;
 	delete imageProcessor;
 
 	delete mw;
 	delete database;
-	delete yolo;
-	delete facenet;
-	delete session;
 
 }
 
@@ -190,13 +195,12 @@ int Script::ensureEnter(std::string rtsp_url, std::string modelPath)// 初始化
 
 void Script::pasue()
 {
-	if (p_thread) {
-		p_thread->Stop();
-		while(!p_thread->isFinished()){
-			std::cout << "Waitting...." << std::endl;
-		}
-		// delete p_thread; // 释放线程
-	}
+	p_thread->Pause(1);
+}
+
+void Script::resume()
+{
+	p_thread->Pause(0);
 }
 
 void Script::prossPixSignal(QPixmap image){

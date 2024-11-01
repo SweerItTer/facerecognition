@@ -25,14 +25,29 @@ MainWindow::MainWindow(QWidget *parent)
     // page2 数据库
 
     StyleSheetInit(); // 样式初始化
+<<<<<<< HEAD
     on_but_set_clicked(); 
+=======
+
+>>>>>>> 474f277b4b09ca6b0e46b4e0db1b2056b3611a5c
 }
 
 MainWindow::~MainWindow()
 {
-	delete callback;
+    if (yolo) {
+        delete yolo;
+        yolo = nullptr; // 将指针设为nullptr
+    }
+    if (facenet) {
+        delete facenet;
+        facenet = nullptr; // 将指针设为nullptr
+    }
+    if (callback) {
+        delete callback;
+        callback = nullptr;
+    }
+    delete ui_enterface;
     delete ui;
-
 }
 
 
@@ -1143,7 +1158,16 @@ void MainWindow::on_pushButton_clicked()
 // 录入人脸信息
 void MainWindow::on_but_enterface_clicked()
 {
+<<<<<<< HEAD
     ui_enterface = new enterface(nullptr, yolo);
+=======
+    ui_enterface = new enterface(nullptr, ui->le_onnx->text(),ui->le_facenetonnx->text(), yolo);
+    ui_enterface->setCallback([this]() {
+        if (callback) {
+            callback->resume();
+        }
+    });
+>>>>>>> 474f277b4b09ca6b0e46b4e0db1b2056b3611a5c
     // 这里的yolo就会有isLoaded
     if(!yolo->isLoaded){// 模型未加载
         QMessageBox::warning(this, tr("Model error:"), 

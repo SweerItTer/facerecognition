@@ -10,6 +10,7 @@ enterface::enterface(QWidget *parent, Yolo *yolo)
     , timer(new QTimer(this))
     , yolo_(yolo) // 传递配置好的yolo对象
 {
+    setAttribute(Qt::WA_DeleteOnClose);
     ui->setupUi(this);
     InitStyle();
     connect(ui->stackedWidget, &QStackedWidget::currentChanged, this, &enterface::pagechangebutton);
@@ -22,7 +23,10 @@ enterface::enterface(QWidget *parent, Yolo *yolo)
 
 enterface::~enterface()
 {
+    capture->release();
     delete ui;
+    delete timer;
+    delete capture;
 }
 
 
@@ -535,10 +539,15 @@ void enterface::updateFrame()
         *capture >> src;
         if(src.data == nullptr)
             return;
+    } else return;
+
+    if(src.empty()){
+        return;
     }
 
     // 使用 YOLO 模型进行图像处理
     yolo_->runModel(src, "image", retImg);
+<<<<<<< HEAD
     if(retImg.size() == 1) {
         frame = retImg[0]; 
     }else{
@@ -552,6 +561,19 @@ void enterface::updateFrame()
         QPixmap pixmap = QPixmap::fromImage(videoimg);
         pixmap = pixmap.scaled(ui->lb_camera->size(),Qt::KeepAspectRatio);
         ui->lb_camera->setPixmap(pixmap);//将调整后的图片放到标签上
+=======
+
+    retImg[0].copyTo(frame);     
+    //将图像转换为qt能够处理的格式
+    cv::cvtColor(frame,frame,cv::COLOR_BGR2RGB);
+    cv::flip(frame,frame,1);
+    //将opcv的mat对象转换为img对象
+    QImage videoimg = QImage(frame.data,frame.cols,frame.rows,frame.step,QImage::Format_RGB888);
+    //根据标签大小调整图片
+    QPixmap pixmap = QPixmap::fromImage(videoimg);
+    pixmap = pixmap.scaled(ui->lb_camera->size(),Qt::KeepAspectRatio);
+    ui->lb_camera->setPixmap(pixmap);//将调整后的图片放到标签上
+>>>>>>> 474f277b4b09ca6b0e46b4e0db1b2056b3611a5c
 }
 
 
