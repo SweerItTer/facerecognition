@@ -92,7 +92,11 @@ CREATE TABLE IF NOT EXISTS FaceFeatures (
     feature_vector3 VARBINARY(512) NOT NULL
 );
 ```
-
+### 快速预览
+- 数据库名：`FaceDB`
+- 主要表：`FaceFeatures`和`AttendanceRecords`
+- 配置文件位置：[./Sql/aboutSql.txt](./Sql/aboutSql.txt)
+> 注意：完整的数据库设置步骤、表结构说明和示例代码请查看配置文档
 ## 构建说明
 项目使用CMake构建系统。在Windows环境下构建步骤如下：
 
@@ -131,7 +135,7 @@ cmake --build .
 - 使用多级处理策略，仅在检测到人脸时才进行特征提取，节省计算资源
 
 ## 注意事项
-- 确保所有依赖项正确安装
+- 确保所有依赖��正确安装
 - 数据库配置需要根据实际环境调整
 - 模型文件在对应文件夹下
 ```

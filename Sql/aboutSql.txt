@@ -1,0 +1,17 @@
+# 创建数据库
+CREATE DATABASE IF NOT EXISTS FaceDB;
+USE FaceDB;
+# 创建考勤记录表
+CREATE TABLE AttendanceRecords (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    timestamp DATETIME NOT NULL,
+    record_type VARCHAR(20) NOT NULL
+);
+# 创建人脸特征表
+CREATE TABLE IF NOT EXISTS FaceFeatures (
+    name VARCHAR(255) NOT NULL,
+    feature_vector1 VARBINARY(512) NOT NULL,
+    feature_vector2 VARBINARY(512) NOT NULL,
+    feature_vector3 VARBINARY(512) NOT NULL
+);
