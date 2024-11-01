@@ -26,9 +26,20 @@ public:
             throw std::runtime_error("mysql_init() failed");
         }
 
+        // 设置字符集为 utf8mb4
+        mysql_options(conn, MYSQL_SET_CHARSET_NAME, "utf8mb4");
+        
         if (!mysql_real_connect(conn, host.c_str(), user.c_str(), 
                               password.c_str(), db_name.c_str(), port, nullptr, 0)) {
             std::string error_message = "mysql_real_connect() failed: ";
+            error_message += mysql_error(conn);
+            mysql_close(conn);
+            throw std::runtime_error(error_message);
+        }
+
+        // 连接后再次确保字符集设置正确
+        if (mysql_set_character_set(conn, "utf8mb4")) {
+            std::string error_message = "mysql_set_character_set() failed: ";
             error_message += mysql_error(conn);
             mysql_close(conn);
             throw std::runtime_error(error_message);
@@ -45,24 +56,44 @@ public:
                            "VALUES (?, NOW(), ?)";
 
         MYSQL_STMT* stmt = mysql_stmt_init(conn);
-        if (!stmt || mysql_stmt_prepare(stmt, query.c_str(), static_cast<unsigned long>(query.size()))) {
-            std::cerr << "Error: Failed to prepare statement: " << mysql_error(conn) << std::endl;
+        if (!stmt) {
+            std::cerr << "Error: mysql_stmt_init() failed" << std::endl;
+            return false;
+        }
+
+        if (mysql_stmt_prepare(stmt, query.c_str(), static_cast<unsigned long>(query.size()))) {
+            std::cerr << "Error: mysql_stmt_prepare() failed: " << mysql_stmt_error(stmt) << std::endl;
+            mysql_stmt_close(stmt);
             return false;
         }
 
         MYSQL_BIND bind[2];
         memset(bind, 0, sizeof(bind));
 
+        // 为字符串参数添加长度指示器
+        unsigned long name_length = static_cast<unsigned long>(name.size());
+        unsigned long type_length = static_cast<unsigned long>(record_type.size());
+
         bind[0].buffer_type = MYSQL_TYPE_STRING;
         bind[0].buffer = (void*)name.c_str();
-        bind[0].buffer_length = static_cast<unsigned long>(name.size());
+        bind[0].buffer_length = name_length;
+        bind[0].length = &name_length;
+        bind[0].is_null = 0;
 
         bind[1].buffer_type = MYSQL_TYPE_STRING;
         bind[1].buffer = (void*)record_type.c_str();
-        bind[1].buffer_length = static_cast<unsigned long>(record_type.size());
+        bind[1].buffer_length = type_length;
+        bind[1].length = &type_length;
+        bind[1].is_null = 0;
 
-        if (mysql_stmt_bind_param(stmt, bind) || mysql_stmt_execute(stmt)) {
-            std::cerr << "Error: Failed to execute statement: " << mysql_error(conn) << std::endl;
+        if (mysql_stmt_bind_param(stmt, bind)) {
+            std::cerr << "Error: mysql_stmt_bind_param() failed: " << mysql_stmt_error(stmt) << std::endl;
+            mysql_stmt_close(stmt);
+            return false;
+        }
+
+        if (mysql_stmt_execute(stmt)) {
+            std::cerr << "Error: mysql_stmt_execute() failed: " << mysql_stmt_error(stmt) << std::endl;
             mysql_stmt_close(stmt);
             return false;
         }
