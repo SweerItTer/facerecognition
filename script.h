@@ -27,7 +27,9 @@ public:
 	}
 
 	~Script();
-	int ensureEnter(std::string rtsp_url, std::string modelPath);
+	int ensureEnter(std::string modelPath, std::string url);// 初始化检测线程
+	int play();// 播放视频
+
 	void pasue();
 	void resume();
 
@@ -58,6 +60,7 @@ private:
 	void processNextFrame();
 
 	bool isinite = false;
+	std::string rtsp_url;
 
 	QQueue<cv::Mat> frameQueue;
 	QMutex queueMutex;
