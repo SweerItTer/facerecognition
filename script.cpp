@@ -174,6 +174,7 @@ int Script::ensureEnter(std::string modelPath, std::string url)// 初始化检�
 }
 
 int Script::play() {
+	if(!isinite)	return -1;
 	// 确认拉流链接的合法性
 	bool is_rtspurl = string_compare(rtsp_url, "rtsp://");
 	QObject::connect(yolo, &Yolo::signal_str, this,

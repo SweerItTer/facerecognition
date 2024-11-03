@@ -508,7 +508,10 @@ void MainWindow::on_but_home_clicked()
 // 摄像机
 void MainWindow::on_but_camera_clicked()
 {
-    ui->stackedWidget->setCurrentIndex(1);
+    // 打开摄像头
+    int ret = callback->play();
+    if(ret < 0) QMessageBox::warning(this, tr("No configure"), tr("You have not configured yet."));
+    else ui->stackedWidget->setCurrentIndex(1);
 }
 
 // 后台数据
@@ -1222,6 +1225,7 @@ void MainWindow::on_but_onnx_clicked()
 		QMessageBox::warning(this, tr("No File Selected"), tr("No ONNX file was selected."));
 	}
 }
+
 
 // 选择facenet模型文件
 void MainWindow::on_but_facenetonnx_clicked()
