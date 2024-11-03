@@ -150,7 +150,7 @@ void Script::processNextFrame() {
 }
 
 
-int Script::ensureEnter(std::string rtsp_url, std::string modelPath)// 初始化检测线程
+int Script::ensureEnter(std::string modelPath, std::string url)// 初始化检测线程
 {
 	// 判断初始化
 	if (!isinite) { //若数据库连接初始化出现问题,将会直接退出函数,因此需要判断是否已经初始化
@@ -161,8 +161,20 @@ int Script::ensureEnter(std::string rtsp_url, std::string modelPath)// 初始化
 			return -1;
 		}
 		Configurate();
+		if(isinite){
+			rtsp_url = url;
+			std::cout << "Script is inited." << std::endl;
+			return 0;
+		}
 		return -1;
 	}
+	rtsp_url = url;
+	std::cout << "Script is inited." << std::endl;
+	return 0;
+}
+
+int Script::play() {
+	if(!isinite)	return -1;
 	// 确认拉流链接的合法性
 	bool is_rtspurl = string_compare(rtsp_url, "rtsp://");
 	QObject::connect(yolo, &Yolo::signal_str, this,
@@ -195,12 +207,16 @@ int Script::ensureEnter(std::string rtsp_url, std::string modelPath)// 初始化
 
 void Script::pasue()
 {
-	p_thread->Pause(1);
+	if (p_thread) {
+		p_thread->Pause(1);
+	}
 }
 
 void Script::resume()
-{
-	p_thread->Pause(0);
+{	
+	if (p_thread) {
+		p_thread->Pause(0);
+	}
 }
 
 void Script::prossPixSignal(QPixmap image){

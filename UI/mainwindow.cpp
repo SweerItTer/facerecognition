@@ -508,7 +508,10 @@ void MainWindow::on_but_home_clicked()
 // 摄像机
 void MainWindow::on_but_camera_clicked()
 {
-    ui->stackedWidget->setCurrentIndex(1);
+    // 打开摄像头
+    int ret = callback->play();
+    if(ret < 0) QMessageBox::warning(this, tr("No configure"), tr("You have not configured yet."));
+    else ui->stackedWidget->setCurrentIndex(1);
 }
 
 // 后台数据
@@ -1192,13 +1195,14 @@ void MainWindow::on_but_sure_clicked()
     }
 	std::string rtsp_url = ui->le_rtsp->text().toStdString();
 	std::string modelPath = ui->le_onnx->text().toStdString(); // yolo 模型路径
-	int ret = callback->ensureEnter(rtsp_url, modelPath);
+	int ret = callback->ensureEnter(modelPath, rtsp_url);
 	if(ret < 0){
-        // QMessageBox::warning(this, tr("Slot error:"), tr("Fail to created thread"));
+        QMessageBox::critical(this, tr("Init error:"), tr("Fail to configure"));
         MYLOG << "Slot error: ";
 		MYLOG << "Fail to created thread";
 	} else {
-        ui->stackedWidget->setCurrentWidget(ui->page_2);
+        QMessageBox::information(this, tr("Init success:"), tr("Successfully configured"));
+        //ui->stackedWidget->setCurrentWidget(ui->page_2);
     }
 }
 
@@ -1208,7 +1212,7 @@ void MainWindow::on_but_onnx_clicked()
 	// 打开文件对话框
 	QString fileName = QFileDialog::getOpenFileName(
 		this,                           // 父窗口
-		tr("Open ONNX File"),           // 对话框标题
+		tr("Yolo model file"),           // 对话框标题
 		// "../../",                             // 默认路径
         ":/",                             // 默认路径
 		tr("ONNX Files (*.onnx);;All Files (*)") // 文件过滤器
@@ -1222,13 +1226,14 @@ void MainWindow::on_but_onnx_clicked()
 	}
 }
 
+
 // 选择facenet模型文件
 void MainWindow::on_but_facenetonnx_clicked()
 {
 	// 打开文件对话框
 	QString fileName = QFileDialog::getOpenFileName(
 		this,                           // 父窗口
-		tr("Open ONNX File"),           // 对话框标题
+		tr("Facenet model file"),           // 对话框标题
 		":/UI/Resources",                             // 默认路径
 		tr("ONNX Files (*.onnx);;All Files (*)") // 文件过滤器
 	);
