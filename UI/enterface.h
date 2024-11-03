@@ -86,7 +86,7 @@ private slots:
     void on_but_delet2_clicked(); // 删除图片2
     void on_but_delet3_clicked(); // 删除图片3
 
-    // void EnterInformation(); // 录入信息
+    void EnterInformation(); // 录入信息
     // page2 验证人脸
     
     // page3 录入完成

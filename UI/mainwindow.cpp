@@ -3,6 +3,7 @@
 #include "configure.h"
 
 #define MYLOG qDebug() << "[" << __FILE__ << ":" << __LINE__ << "]"
+static bool isplay = false;
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -509,9 +510,13 @@ void MainWindow::on_but_home_clicked()
 void MainWindow::on_but_camera_clicked()
 {
     // 打开摄像头
-    int ret = callback->play();
-    if(ret < 0) QMessageBox::warning(this, tr("No configure"), tr("You have not configured yet."));
-    else ui->stackedWidget->setCurrentIndex(1);
+    if(isplay) ui->stackedWidget->setCurrentIndex(1);
+    else{
+        int ret = callback->play();
+        if(ret < 0) QMessageBox::warning(this, tr("No configure"), tr("You have not configured yet."));
+        else ui->stackedWidget->setCurrentIndex(1);
+        isplay = true;
+    }
 }
 
 // 后台数据
@@ -1202,6 +1207,7 @@ void MainWindow::on_but_sure_clicked()
 		MYLOG << "Fail to created thread";
 	} else {
         QMessageBox::information(this, tr("Init success:"), tr("Successfully configured"));
+        isplay = false;
         //ui->stackedWidget->setCurrentWidget(ui->page_2);
     }
 }

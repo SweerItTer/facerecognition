@@ -627,10 +627,10 @@ void enterface::on_but_delet3_clicked()
 }
 
 // 录入信息
-// void EnterInformation()
-// {
+void enterface::EnterInformation()
+{
 
-// }
+}
 
 // ------------------------
 // 结束录入
