@@ -553,7 +553,10 @@ void enterface::updateFrame()
     yolo_->runModel(src, "image", retImg);
 
     mat_panorama = retImg[0];
-    mat_face = retImg[1];
+    if(retImg.size() > 1){
+        mat_face = retImg[1];
+    }
+    
 
     retImg[0].copyTo(frame);    
 
@@ -590,6 +593,7 @@ void enterface::on_but_facecut_clicked()
 // 保存图片
 void enterface::on_but_save_clicked()
 {
+    if(mat_face.empty()) return;
     timer->stop();
     if(ui->lb_photo1->pixmap() == nullptr || ui->lb_photo1->pixmap()->isNull())
     {

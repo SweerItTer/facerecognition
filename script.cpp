@@ -34,7 +34,10 @@ Script::~Script()
 	delete imageProcessor;
 
 	delete mw;
-	delete database;
+	if (*database_ptr) {
+        delete *database_ptr;
+        *database_ptr = nullptr;
+    }
 
 }
 
@@ -69,7 +72,7 @@ void Script::Configurate(){
 
 	qRegisterMetaType<cv::Mat>("cv::Mat");
 
-	imageProcessor = new ImageProcessor(yolo, facenet, database);
+    imageProcessor = new ImageProcessor(yolo, facenet, getCurrentDatabase());
 
 	imageProcessor->setCallback([this](const QPixmap& img) {
 		// 在主线程中更新 UI
@@ -111,7 +114,7 @@ int Script::loadConfig(QFile &configFile) {
 		mw->ui->le_storagefile->setText(jsonObj.value("connectionName").toString(""));
 		// 初始化数据库连接
 		try {
-			database = new FaceDatabase(host, userName, password, "FaceDB", port);
+       		*database_ptr = new FaceDatabase(host, userName, password, "FaceDB", port);
 			std::cout << "Database connected." << std::endl;
 		}
 		catch (const std::runtime_error& e){

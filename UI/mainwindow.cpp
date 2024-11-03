@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     // 将创建好的对象传递给callback
-	callback = new Script(this, yolo, facenet, database);
+	callback = new Script(this, yolo, facenet, &database);
     ui_enterface = new enterface(nullptr, yolo, facenet, database);
     
     // 初始化

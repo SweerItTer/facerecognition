@@ -18,11 +18,11 @@ class Yolo;
 class Script: public QObject {
 	Q_OBJECT  // 确保 Script 也可以使用 Qt 的信号槽机制
 public:
-	explicit Script(MainWindow *window = nullptr, Yolo *yolo_ = nullptr, FaceNet *facenet_ = nullptr, FaceDatabase *database_ = nullptr)
+	explicit Script(MainWindow *window = nullptr, Yolo *yolo_ = nullptr, FaceNet *facenet_ = nullptr, FaceDatabase **database_ = nullptr)
 		: mw(window)
 		, yolo(yolo_)
 		, facenet(facenet_) // 正逆向传递, 对象是公用的(主窗口，脚本，录入界面)
-		, database(database_)
+        , database_ptr(database_)  // 存储数据库指针的指针
 	{
 		Configurate();
 	}
@@ -39,7 +39,7 @@ private:
 	std::string modelPath;
 
 	MainWindow *mw = nullptr;
-	FaceDatabase *database;
+    FaceDatabase **database_ptr;  // 存储指针的指针
 	Yolo *yolo;
 	FaceNet *facenet;
 	
@@ -50,6 +50,8 @@ private:
 	bool string_compare(const std::string& s, const std::string& prefix){
 		return (s.compare(0, prefix.size(), prefix) == 0);
 	}
+	// 添加一个辅助函数来获取当前数据库指针
+    FaceDatabase* getCurrentDatabase() const { return *database_ptr; }
 	int loadConfig(QFile &configFile);
 
 	void prossPixSignal(QPixmap image);
