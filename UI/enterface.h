@@ -14,9 +14,11 @@
 #include "opencv2/opencv.hpp"
 #include "./Yolov8/YOLO/yolo.h"
 #include "./Facenet/facenet.h"
+#include "./Sql/facedatabase.h"
 
 class Yolo;
 class FaceNet;
+class FaceDatabase;
 
 namespace Ui {
 class enterface;
@@ -27,11 +29,11 @@ class enterface : public QWidget
     Q_OBJECT
 
 public:
-    explicit enterface(QWidget *parent = nullptr, Yolo *yolo = nullptr, FaceNet *facenet = nullptr);
+    explicit enterface(QWidget *parent = nullptr, Yolo *yolo = nullptr,
+                      FaceNet *facenet = nullptr, FaceDatabase *database = nullptr);
     ~enterface();
     void InitStyle();
 
-    void setSession(Ort::Session *&session);
     void setCallback(std::function<void()> callback_){
         callback = callback_;
     }
@@ -44,15 +46,19 @@ private:
     cv::VideoCapture *capture;
     Yolo *yolo_ = nullptr;
     FaceNet *facenet_ = nullptr;
+    FaceDatabase *database_ = nullptr;
 
+    std::string name = ""; // 备份
+    std::string name_ = ""; // 最终提交
     int page = 0;
     int retImgIndex = 0;
 
-    QPixmap save_1;
-    QPixmap save_2;
-    QPixmap save_3;
+    cv::Mat mat_panorama; // 全景图
+    cv::Mat mat_face; // 人脸
 
-    const QPixmap *save_becake;
+    cv::Mat mat_1;
+    cv::Mat mat_2;
+    cv::Mat mat_3;
 
 
 private slots:

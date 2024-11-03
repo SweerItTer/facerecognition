@@ -6,6 +6,7 @@
 #include <mysql.h>
 #include <vector>
 #include <cstring>
+#include <mutex>
 #include "dataitem.h"
 
 class FaceDatabase 
@@ -31,15 +32,17 @@ public:
         mysql_close(conn);
     }
 
-/** 
- * @brief 插入特征向量到数据库
- * @param user_id           用户的id
- * @param feature_vectors   人脸特征组
- * @return bool
- */
+    /** 
+     * @brief 插入特征向量到数据库
+     * @param user_id           用户的id
+     * @param feature_vectors   人脸特征组
+     * @return bool
+     */
 	// 插入特征向量到数据库
 	bool insertFeatures(const std::string& name, const std::vector<std::vector<float>>& feature_vectors) {
-		if (feature_vectors.size() != 3) {
+        std::lock_guard<std::mutex> lock(db_mutex); // 自动锁定互斥锁，在作用域结束时自动释放
+
+        if (feature_vectors.size() != 3) {
 			std::cerr << "Error: Exactly 3 feature vectors are required." << std::endl;
 			return false;
 		}
@@ -47,6 +50,7 @@ public:
 		std::string query = "INSERT INTO FaceFeatures (name, feature_vector1, feature_vector2, feature_vector3) VALUES (?, ?, ?, ?)";
 
 		// 创建并执行 SQL 语句
+
 		MYSQL_STMT* stmt = mysql_stmt_init(conn);
 		if (!stmt || mysql_stmt_prepare(stmt, query.c_str(), static_cast<unsigned long>(query.size()))) {
 			std::cerr << "Error: Failed to prepare statement: " << mysql_error(conn) << std::endl;
@@ -97,6 +101,7 @@ public:
             std::cerr << "Query failed: " + std::string(mysql_error(conn)) << std::endl;
             return {};
         }
+        std::lock_guard<std::mutex> lock(db_mutex); // 自动锁定互斥锁，在作用域结束时自动释放
 
         MYSQL_RES* result = mysql_store_result(conn);
         if (!result) {
@@ -144,6 +149,7 @@ std::memcpy(feature_vectors[i-1].data(), row[i], lengths[i]);
     }
 
 private:
+    std::mutex db_mutex; // 用于同步数据库访问的互斥锁
     MYSQL*  conn;
 };
 

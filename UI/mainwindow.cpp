@@ -13,7 +13,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     // 将创建好的对象传递给callback
-	callback = new Script(this, yolo, facenet);
+	callback = new Script(this, yolo, facenet, database);
+    ui_enterface = new enterface(nullptr, yolo, facenet, database);
     
     // 初始化
     // page0 首页统计图
@@ -1161,7 +1162,6 @@ void MainWindow::on_pushButton_clicked()
 // 录入人脸信息
 void MainWindow::on_but_enterface_clicked()
 {
-    ui_enterface = new enterface(nullptr, yolo, facenet);
     ui_enterface->setCallback([this]() {
         if (callback) {
             callback->resume();

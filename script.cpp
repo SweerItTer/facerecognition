@@ -112,6 +112,7 @@ int Script::loadConfig(QFile &configFile) {
 		// 初始化数据库连接
 		try {
 			database = new FaceDatabase(host, userName, password, "FaceDB", port);
+			std::cout << "Database connected." << std::endl;
 		}
 		catch (const std::runtime_error& e){
 			std::cerr << e.what() << std::endl;

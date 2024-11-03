@@ -18,10 +18,11 @@ class Yolo;
 class Script: public QObject {
 	Q_OBJECT  // 确保 Script 也可以使用 Qt 的信号槽机制
 public:
-	explicit Script(MainWindow *window = nullptr, Yolo *yolo_ = nullptr, FaceNet *facenet_ = nullptr)
+	explicit Script(MainWindow *window = nullptr, Yolo *yolo_ = nullptr, FaceNet *facenet_ = nullptr, FaceDatabase *database_ = nullptr)
 		: mw(window)
 		, yolo(yolo_)
 		, facenet(facenet_) // 正逆向传递, 对象是公用的(主窗口，脚本，录入界面)
+		, database(database_)
 	{
 		Configurate();
 	}
@@ -38,7 +39,7 @@ private:
 	std::string modelPath;
 
 	MainWindow *mw = nullptr;
-	FaceDatabase *database = nullptr;
+	FaceDatabase *database;
 	Yolo *yolo;
 	FaceNet *facenet;
 	

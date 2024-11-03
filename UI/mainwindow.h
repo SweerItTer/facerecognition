@@ -22,6 +22,7 @@ QT_CHARTS_USE_NAMESPACE
 
 class Yolo;
 class FaceNet;
+class FaceDatabase;
 
 
 QT_BEGIN_NAMESPACE
@@ -90,6 +91,8 @@ private:
 
     Yolo *yolo = new Yolo(nullptr); // 先创建yolo对象
     FaceNet *facenet = new FaceNet(); // facenet对象
+    FaceDatabase *database ; // 人脸数据库对象
+    // FaceDatabase *database_  = nullptr; 
 	Script *callback = nullptr;
     enterface *ui_enterface = nullptr;
     Ort::Session *session_ = nullptr;

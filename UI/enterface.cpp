@@ -3,13 +3,14 @@
 #pragma execution_character_set("UTF-8")
 #define MYLOG qDebug() << "[" << __FILE__ << ":" << __LINE__ << "]"
 
-enterface::enterface(QWidget *parent, Yolo *yolo,  FaceNet *facenet) 
+enterface::enterface(QWidget *parent, Yolo *yolo,  FaceNet *facenet, FaceDatabase *database) 
     : QWidget(parent)
     , ui(new Ui::enterface)
     , capture(new cv::VideoCapture)
     , timer(new QTimer(this))
     , yolo_(yolo) // 传递配置好的yolo对象
     , facenet_ (facenet) // 传递配置好的facenet对象
+    , database_(database) // 传递配置好的数据库对象
 {
     setAttribute(Qt::WA_DeleteOnClose);
     ui->setupUi(this);
@@ -473,24 +474,25 @@ void enterface::on_but_back_clicked()
 // 下一步
 void enterface::on_but_next_clicked()
 {
-    // if(page == 0){
-    //     if(ui->le_class->text().isEmpty() || ui->le_name->text().isEmpty() || ui->le_ID->text().isEmpty() 
-    //         || ui->cbB_college->currentText().isEmpty() || ui->cbB_grade->currentText().isEmpty())
-    //     {
-    //         QMessageBox::warning(this, tr("Incomplete information"),
-    //          tr("Please complete the personal information first"));
-    //         return;
-    //     }
-    // }else if(page == 1){
-    //     if(ui->lb_photo1->pixmap() == nullptr || ui->lb_photo1->pixmap()->isNull()
-    //         || ui->lb_photo2->pixmap() == nullptr || ui->lb_photo2->pixmap()->isNull()
-    //         || ui->lb_photo3->pixmap() == nullptr || ui->lb_photo3->pixmap()->isNull())
-    //     {
-    //         QMessageBox::warning(this, tr("Incomplete information"),
-    //          tr("Please complete the face information first"));
-    //         return;
-    //     }
-    // }
+    if(page == 0){
+        if(ui->le_class->text().isEmpty() || ui->le_name->text().isEmpty() || ui->le_ID->text().isEmpty() 
+            || ui->cbB_college->currentText().isEmpty() || ui->cbB_grade->currentText().isEmpty())
+        {
+            QMessageBox::warning(this, tr("Incomplete information"),
+             tr("Please complete the personal information first"));
+            return;
+        }
+    }else if(page == 1){
+        if(ui->lb_photo1->pixmap() == nullptr || ui->lb_photo1->pixmap()->isNull()
+            || ui->lb_photo2->pixmap() == nullptr || ui->lb_photo2->pixmap()->isNull()
+            || ui->lb_photo3->pixmap() == nullptr || ui->lb_photo3->pixmap()->isNull())
+        {
+            QMessageBox::warning(this, tr("Incomplete information"),
+             tr("Please complete the face information first"));
+            return;
+        }
+        EnterInformation();
+    }
 
     // else if(page == 2){
     //     if(ui->lb_camera->pixmap() == nullptr || ui->lb_camera->pixmap()->isNull())
@@ -500,6 +502,7 @@ void enterface::on_but_next_clicked()
     //         return;
     //     }
     // }
+
     page++;
     ui->stackedWidget->setCurrentIndex(page);
 }
@@ -549,12 +552,16 @@ void enterface::updateFrame()
     // 使用 YOLO 模型进行图像处理
     yolo_->runModel(src, "image", retImg);
 
-    retImg[0].copyTo(frame);     
+    mat_panorama = retImg[0];
+    mat_face = retImg[1];
+
+    retImg[0].copyTo(frame);    
+
     //将图像转换为qt能够处理的格式
     cv::cvtColor(frame,frame,cv::COLOR_BGR2RGB);
     cv::flip(frame,frame,1);
     //将opcv的mat对象转换为img对象
-    QImage videoimg = QImage(frame.data,frame.cols,frame.rows,frame.step,QImage::Format_RGB888);
+    QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
     //根据标签大小调整图片
     QPixmap pixmap = QPixmap::fromImage(videoimg);
     pixmap = pixmap.scaled(ui->lb_camera->size(),Qt::KeepAspectRatio);
@@ -584,24 +591,35 @@ void enterface::on_but_facecut_clicked()
 void enterface::on_but_save_clicked()
 {
     timer->stop();
-    save_becake = ui->lb_camera->pixmap();
     if(ui->lb_photo1->pixmap() == nullptr || ui->lb_photo1->pixmap()->isNull())
     {
-        save_1 = *save_becake;
-        save_1 = save_1.scaled(ui->lb_photo1->size(),Qt::KeepAspectRatio);
-        ui->lb_photo1->setPixmap(save_1);
+        mat_1 = mat_face.clone();
+        cv::cvtColor(mat_1, mat_1, cv::COLOR_BGR2RGB);
+        cv::flip(mat_1, mat_1, 1);
+        QImage img = QImage(mat_1.data, mat_1.cols, mat_1.rows, mat_1.step, QImage::Format_RGB888);
+        QPixmap pixmap = QPixmap::fromImage(img);
+        pixmap = pixmap.scaled(ui->lb_photo1->size(),Qt::KeepAspectRatio);
+        ui->lb_photo1->setPixmap(pixmap);
     }
     else if(ui->lb_photo2->pixmap() == nullptr || ui->lb_photo2->pixmap()->isNull())
     {
-        save_2 = *save_becake;
-        save_2 = save_2.scaled(ui->lb_photo2->size(),Qt::KeepAspectRatio);
-        ui->lb_photo2->setPixmap(save_2);
+        mat_2 = mat_face.clone();
+        cv::cvtColor(mat_2, mat_2, cv::COLOR_BGR2RGB);
+        cv::flip(mat_2, mat_2, 1);
+        QImage img = QImage(mat_2.data, mat_2.cols, mat_2.rows, mat_2.step, QImage::Format_RGB888);
+        QPixmap pixmap = QPixmap::fromImage(img);
+        pixmap = pixmap.scaled(ui->lb_photo2->size(),Qt::KeepAspectRatio);
+        ui->lb_photo2->setPixmap(pixmap);
     }
     else if(ui->lb_photo3->pixmap() == nullptr || ui->lb_photo3->pixmap()->isNull())
     {
-        save_3 = *save_becake;
-        save_3 = save_3.scaled(ui->lb_photo3->size(),Qt::KeepAspectRatio);
-        ui->lb_photo3->setPixmap(save_3);
+        mat_3 = mat_face.clone();
+        cv::cvtColor(mat_3, mat_3, cv::COLOR_BGR2RGB);
+        cv::flip(mat_3, mat_3, 1);
+        QImage img = QImage(mat_3.data, mat_3.cols, mat_3.rows, mat_3.step, QImage::Format_RGB888);
+        QPixmap pixmap = QPixmap::fromImage(img);
+        pixmap = pixmap.scaled(ui->lb_photo3->size(),Qt::KeepAspectRatio);
+        ui->lb_photo3->setPixmap(pixmap);
     }
     else
     {
@@ -629,7 +647,22 @@ void enterface::on_but_delet3_clicked()
 // 录入信息
 void enterface::EnterInformation()
 {
+    name_ = ui->le_name->text().toStdString();
 
+    std::vector<std::vector<float>> feature_vectors;
+    feature_vectors.emplace_back(facenet_->outputs(mat_1, {1, 3, 160, 160}));
+    feature_vectors.emplace_back(facenet_->outputs(mat_2, {1, 3, 160, 160}));
+    feature_vectors.emplace_back(facenet_->outputs(mat_3, {1, 3, 160, 160}));
+
+    int ret = database_->insertFeatures(name_, feature_vectors);
+    if(ret < 1)
+    {
+        MYLOG<< "insert features successfully 插入特征成功";
+        name = name_;
+    }
+    
+
+    // bool insertFeatures(const std::string& name, const std::vector<std::vector<float>>& feature_vectors) 
 }
 
 // ------------------------
