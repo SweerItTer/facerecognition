@@ -1153,7 +1153,7 @@ void MainWindow::on_pushButton_clicked()
 // 录入人脸信息
 void MainWindow::on_but_enterface_clicked()
 {
-    ui_enterface = new enterface(nullptr, yolo);
+    ui_enterface = new enterface(nullptr, yolo, facenet);
     ui_enterface->setCallback([this]() {
         if (callback) {
             callback->resume();

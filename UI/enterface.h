@@ -13,8 +13,10 @@
 
 #include "opencv2/opencv.hpp"
 #include "./Yolov8/YOLO/yolo.h"
+#include "./Facenet/facenet.h"
 
 class Yolo;
+class FaceNet;
 
 namespace Ui {
 class enterface;
@@ -25,7 +27,7 @@ class enterface : public QWidget
     Q_OBJECT
 
 public:
-    explicit enterface(QWidget *parent = nullptr, Yolo *yolo = nullptr);
+    explicit enterface(QWidget *parent = nullptr, Yolo *yolo = nullptr, FaceNet *facenet = nullptr);
     ~enterface();
     void InitStyle();
 
@@ -41,6 +43,7 @@ private:
     QTimer *timer;
     cv::VideoCapture *capture;
     Yolo *yolo_ = nullptr;
+    FaceNet *facenet_ = nullptr;
 
     int page = 0;
     int retImgIndex = 0;
@@ -71,7 +74,7 @@ private slots:
     void on_but_back_clicked(); // back
     void on_but_next_clicked(); // next
 
-    // 录入人脸相关槽函数
+    // page1 录入人脸
     void on_but_camera_clicked(); // 打开摄像头
     void updateFrame();
 
@@ -83,6 +86,10 @@ private slots:
     void on_but_delet2_clicked(); // 删除图片2
     void on_but_delet3_clicked(); // 删除图片3
 
+    // void EnterInformation(); // 录入信息
+    // page2 验证人脸
+    
+    // page3 录入完成
     void on_but_end_clicked(); // 结束录入
     void on_but_nextpeople_clicked(); // 录入下一个人
 // --------

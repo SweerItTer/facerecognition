@@ -3,12 +3,13 @@
 #pragma execution_character_set("UTF-8")
 #define MYLOG qDebug() << "[" << __FILE__ << ":" << __LINE__ << "]"
 
-enterface::enterface(QWidget *parent, Yolo *yolo) 
+enterface::enterface(QWidget *parent, Yolo *yolo,  FaceNet *facenet) 
     : QWidget(parent)
     , ui(new Ui::enterface)
     , capture(new cv::VideoCapture)
     , timer(new QTimer(this))
     , yolo_(yolo) // 传递配置好的yolo对象
+    , facenet_ (facenet) // 传递配置好的facenet对象
 {
     setAttribute(Qt::WA_DeleteOnClose);
     ui->setupUi(this);
@@ -503,7 +504,7 @@ void enterface::on_but_next_clicked()
     ui->stackedWidget->setCurrentIndex(page);
 }
 
-
+// ------------------------
 
 // 打开摄像头
 void enterface::on_but_camera_clicked()
@@ -625,6 +626,13 @@ void enterface::on_but_delet3_clicked()
     ui->lb_photo3->clear();
 }
 
+// 录入信息
+// void EnterInformation()
+// {
+
+// }
+
+// ------------------------
 // 结束录入
 void enterface::on_but_end_clicked()
 {
