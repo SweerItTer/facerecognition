@@ -357,8 +357,11 @@ std::vector<cv::Mat> Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv
                 cropped = mat(roi).clone(); // 使用 clone() 创建一个新的 Mat 对象
             }
 
-            if(!cropped.empty()) 
-                re_mat.push_back(cropped);
+            if(!cropped.empty()) {
+                cv::Mat cropped_resized;
+                cv::resize(cropped, cropped_resized, cv::Size(cropped.cols * 4, cropped.rows * 4));
+                re_mat.push_back(cropped_resized);
+            }
 
 //-------------------------------------
 

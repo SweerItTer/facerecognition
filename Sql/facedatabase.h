@@ -47,10 +47,12 @@ public:
 			return false;
 		}
 
-		std::string query = "INSERT INTO FaceFeatures (name, feature_vector1, feature_vector2, feature_vector3) VALUES (?, ?, ?, ?)";
+        // SQL 查询语句，支持插入或覆盖
+        std::string query = "INSERT INTO FaceFeatures (name, feature_vector1, feature_vector2, feature_vector3) VALUES (?, ?, ?, ?) "
+                        "ON DUPLICATE KEY UPDATE feature_vector1 = VALUES(feature_vector1), "
+                        "feature_vector2 = VALUES(feature_vector2), feature_vector3 = VALUES(feature_vector3)";
 
 		// 创建并执行 SQL 语句
-
 		MYSQL_STMT* stmt = mysql_stmt_init(conn);
 		if (!stmt || mysql_stmt_prepare(stmt, query.c_str(), static_cast<unsigned long>(query.size()))) {
 			std::cerr << "Error: Failed to prepare statement: " << mysql_error(conn) << std::endl;

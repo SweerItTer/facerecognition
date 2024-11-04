@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include <ctime>
 
+#include <typeinfo>
+
 #include "hnswlib.h"
 #include "dataitem.h" // 结构体
 
@@ -21,7 +23,7 @@ private:
     // 存储原始数据
     std::vector<DataItem> data;
     // 映射HNSW索引到原始数据
-    std::unordered_map<size_t, size_t> indexMap;
+    std::unordered_map<size_t, std::string> indexMap;
     // 空间
     hnswlib::L2Space *space = nullptr;
 
@@ -51,7 +53,7 @@ public:
         size_t id = data.size();
         alg->addPoint(avgVector.data(), id);
         data.push_back(item);
-        indexMap[id] = id;
+        indexMap[id] = item.name;
     }   // 添加数据
 
     std::string search(const std::vector<float>& query, size_t K) {
@@ -62,9 +64,10 @@ public:
         while (!result.empty()) {
             auto item = result.top();  // 获取队列的顶部元素
             result.pop();  // 弹出顶部元素
-            if(item.first < 1.1){// 阈值
+            if(item.first < 1.1f){// 阈值
                 name = indexMap[item.second];
-                std::cout << "ID: " << name  << " Distance: " << item.first << std::endl;
+
+                std::cout << "Name: " << name  << " Distance: " << item.first << std::endl;
                 break;
             } else {
                 continue;

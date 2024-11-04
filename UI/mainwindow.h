@@ -96,5 +96,36 @@ private:
 	Script *callback = nullptr;
     enterface *ui_enterface = nullptr;
     Ort::Session *session_ = nullptr;
+
+    // 保存上一次打开的路径
+    void MainWindow::saveLastPath(const QString& savePath, const QString& path) {
+        QString configPath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+        QFile lastPathFile(configPath + savePath);
+        // qDebug() << lastPathFile;
+        if (lastPathFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&lastPathFile);
+            out << path;
+            lastPathFile.close();
+        } else {
+            qDebug() << "Unable to open "<<configPath << savePath<<" for writing.";
+        }
+    }
+
+    // 读取上一次打开的路径
+    QString MainWindow::loadLastPath(const QString& readPath) {
+        QString configPath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+        QFile lastPathFile(configPath + readPath);
+        qDebug() << lastPathFile;
+
+        if (lastPathFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QTextStream in(&lastPathFile);
+            QString path = in.readAll();
+            lastPathFile.close();
+            return path;
+        } else {
+            qDebug() << "Unable to open last_path.txt for reading.";
+            return QString();
+        }
+    }
 };
 #endif // MAINWINDOW_H
