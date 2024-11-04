@@ -30,13 +30,15 @@ public:
         processingThread = std::thread(&ImageProcessor::process, this);
         hnsw = new CustomHNSW(1000); // 最大元素数为1000
 
+        buildHNSWIndex();  // 构建HNSW索引
+        /*
         struct stat fileInfo;
         if(stat(hnswconfg.c_str(), &fileInfo) == 0){
             hnsw->loadFromFile(hnswconfg); // 从文件加载HNSW索引
             std::cout << "HNSW index loaded." << std::endl;
         } else {
             buildHNSWIndex();  // 构建HNSW索引
-        }
+        }*/
     }
 
     ~ImageProcessor() {
@@ -48,10 +50,14 @@ public:
         if (processingThread.joinable()) {
             processingThread.join();
         }
+        hnsw->saveToFile(hnswconfg); // 保存HNSW索引到文件
+        std::cout << "HNSW index saved." << std::endl;
+        /*
         if(hnsw->shouldUpdateIndex(hnswconfg)){
             std::cout << "HNSW index updated." << std::endl;
             hnsw->saveToFile(hnswconfg); // 保存HNSW索引到文件
         }
+        */
         delete hnsw; // HNSW索引
         delete yolo;
         delete facenet;
@@ -70,76 +76,22 @@ public:
     }
 
 private:
-    // 对比特征
-    /*
-    bool compareFeatures(const std::vector<float>& features,
-                        const std::vector<std::vector<float>>& stored_features, const std::string& user_id, std::string& matched_user) {
-            // 计算特征距离
-            for (const auto& stored_feature : stored_features) {
-                if (features.size() != stored_feature.size()) {
-                    return false;  // 特征维度不匹配
-                }
-                double distance = 0.0;
-
-                try
-                {
-                    for (size_t i = 0; i < features.size(); ++i) {
-                        distance += std::pow(features.at(i) - stored_feature.at(i), 2);
-                    }
-                    distance = std::sqrt(distance);
-                }
-                catch(const std::exception& e)
-                {
-                    std::cerr << e.what() << '\n';
-                    return false;
-                }
-                
-                if (distance <= 1.1) {
-                    matched_user = user_id;
-                    return true;
-                }
-            }
-            return false;
-    }
-    */
-
+    
     // 处理多张人脸
     std::string processFaces(const std::vector<cv::Mat>& result) {
-
-        // std::vector<std::future<bool>> futures;
-
+        static int count = 0;
         std::string matched_user;
 
         // 存在多张人脸时
         for (int index = 1; index < result.size(); index++) {
             std::vector<float> features = facenet->outputs(result.at(index), {1, 3, 160, 160});
-            cv::imwrite("result.jpg", result.at(index));  // 保存检测结果图片
-
-            matched_user = hnsw->search(features, 3);// 特征搜索(返回最近3个匹配的用户名)
+            cv::imwrite("result_" + std::to_string(count) + ".jpg", result.at(index));  // 保存检测结果图片
+            count++;
+            matched_user = hnsw->search(features, 1);// 特征搜索(返回最近1个匹配的用户名)
         }
 
         return matched_user;
 
-        /*
-
-            // 异步特征比对
-            for (const auto& user_features : all_features) {
-                const std::string& user_id = user_features.first;
-                const auto& stored_features = user_features.second;
-
-                futures.emplace_back(pool->enqueue([this, features, stored_features, user_id, &matched_user]() {
-                        return compareFeatures(features, stored_features, user_id, matched_user);
-                        }));  // 异步执行特征比对
-
-            }
-
-        // 等待剩余的异步任务完成
-        for (auto& future : futures) {
-            if (future.get() == true) {
-                std::cout << "Matched user: " << matched_user << std::endl;
-                return;
-            }
-        }*/
     }
 
     // 数据库处理,构建HNSW索引
@@ -166,7 +118,6 @@ private:
             cv.wait(lock, [this] { return !image.empty() || stopFlag; });
             
             if (stopFlag) break;  // 如果停止标志被设置，则退出循环
-
             cv::resize(image, nimg, cv::Size(image.cols / 10, image.rows / 10));  // 将图像缩小为原来的 50%
 
             // 将图像转换为灰度图
@@ -211,8 +162,8 @@ private:
             // std::cout << "Average motion magnitude: " << avgMagnitude << std::endl;
             
             // 如果运动量大于阈值，则进行人脸检测
-            if (!image.empty() && callback && avgMagnitude > 0.08) {
-                std::cout << "Motion detected." << std::endl;
+            if (!image.empty() && callback && avgMagnitude > 0.07) {
+                // std::cout << "Motion detected." << std::endl;
                 std::vector<cv::Mat> result;
 
                 // 使用 YOLO 模型进行图像处理

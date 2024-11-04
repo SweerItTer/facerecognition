@@ -5,16 +5,23 @@
 #define MYLOG qDebug() << "[" << __FILE__ << ":" << __LINE__ << "]"
 static bool isplay = false;
 
+QString facenetLastPath;
+QString yoloLastPath;
+
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    // 读取上一次打开的路径
+    facenetLastPath = loadLastPath("/facenet_path.txt");
+    yoloLastPath = loadLastPath("/yolo_path.txt");
+    if (!facenetLastPath.isEmpty()) ui->le_facenetonnx->setText(facenetLastPath);
+    if (!yoloLastPath.isEmpty()) ui->le_onnx->setText(yoloLastPath);
 
     // 将创建好的对象传递给callback
 	callback = new Script(this, yolo, facenet, &database);
-    ui_enterface = new enterface(nullptr, yolo, facenet, database);
     
     // 初始化
     // page0 首页统计图
@@ -43,7 +50,9 @@ MainWindow::~MainWindow()
         delete callback;
         callback = nullptr;
     }
-    delete ui_enterface;
+    if(ui_enterface)
+        delete ui_enterface;
+        ui_enterface = nullptr; // 将指针设为nullptr
     delete ui;
 }
 
@@ -1162,11 +1171,14 @@ void MainWindow::on_pushButton_clicked()
 // 录入人脸信息
 void MainWindow::on_but_enterface_clicked()
 {
+    ui_enterface = new enterface(nullptr, yolo, facenet, database);
+
     ui_enterface->setCallback([this]() {
         if (callback) {
             callback->resume();
         }
     });
+
     // 这里的yolo就会有isLoaded
     if(!yolo->isLoaded){// 模型未加载
         QMessageBox::warning(this, tr("Model error:"), 
@@ -1208,7 +1220,6 @@ void MainWindow::on_but_sure_clicked()
 	} else {
         QMessageBox::information(this, tr("Init success:"), tr("Successfully configured"));
         isplay = false;
-        //ui->stackedWidget->setCurrentWidget(ui->page_2);
     }
 }
 
@@ -1219,13 +1230,13 @@ void MainWindow::on_but_onnx_clicked()
 	QString fileName = QFileDialog::getOpenFileName(
 		this,                           // 父窗口
 		tr("Yolo model file"),           // 对话框标题
-		// "../../",                             // 默认路径
-        ":/",                             // 默认路径
+		yoloLastPath.isEmpty() ? ":/" : yoloLastPath, // 默认路径
 		tr("ONNX Files (*.onnx);;All Files (*)") // 文件过滤器
 	);
 	// 检查用户是否选择了文件
 	if (!fileName.isEmpty()) {
 		ui->le_onnx->setText(fileName);
+        saveLastPath("/yolo_path.txt", fileName);
 	} else {
 		// 如果用户没有选择文件，可以处理这种情况
 		QMessageBox::warning(this, tr("No File Selected"), tr("No ONNX file was selected."));
@@ -1236,16 +1247,17 @@ void MainWindow::on_but_onnx_clicked()
 // 选择facenet模型文件
 void MainWindow::on_but_facenetonnx_clicked()
 {
-	// 打开文件对话框
+    // 打开文件对话框
 	QString fileName = QFileDialog::getOpenFileName(
 		this,                           // 父窗口
 		tr("Facenet model file"),           // 对话框标题
-		":/UI/Resources",                             // 默认路径
+		facenetLastPath.isEmpty() ? ":/UI/Resources" : facenetLastPath, // 默认路径
 		tr("ONNX Files (*.onnx);;All Files (*)") // 文件过滤器
 	);
 	// 检查用户是否选择了文件
 	if (!fileName.isEmpty()) {
 		ui->le_facenetonnx->setText(fileName);
+        saveLastPath("/facenet_path.txt", fileName);
 	} else {
 		// 如果用户没有选择文件，可以处理这种情况
 		QMessageBox::warning(this, tr("No File Selected"), tr("No ONNX file was selected."));
