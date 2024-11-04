@@ -7,6 +7,7 @@
 #include <condition_variable> // 流光法检测运动
 #include <memory>
 #include <functional>
+#include <set>
 
 #include <QPixmap>
 #include <QImage>
@@ -16,7 +17,7 @@
 #include "./Sql/facedatabase.h"
 #include "./Sql/customhnsw.h"
 #include "./Facenet/facenet.h"
-// #include "./pool.h"
+#include "./Sql/attendancerecord.h"
 
 class Yolo;
 
@@ -31,6 +32,7 @@ public:
         hnsw = new CustomHNSW(1000); // 最大元素数为1000
 
         buildHNSWIndex();  // 构建HNSW索引
+        attendanceDatabase = new AttendanceDatabase(database->getConnection()); // 考勤数据库
         /*
         struct stat fileInfo;
         if(stat(hnswconfg.c_str(), &fileInfo) == 0){
@@ -79,14 +81,14 @@ private:
     
     // 处理多张人脸
     std::string processFaces(const std::vector<cv::Mat>& result) {
-        static int count = 0;
+        // static int count = 0;
         std::string matched_user;
 
         // 存在多张人脸时
         for (int index = 1; index < result.size(); index++) {
             std::vector<float> features = facenet->outputs(result.at(index), {1, 3, 160, 160});
-            cv::imwrite("result_" + std::to_string(count) + ".jpg", result.at(index));  // 保存检测结果图片
-            count++;
+            //cv::imwrite("result_" + std::to_string(count) + ".jpg", result.at(index));  // 保存检测结果图片
+            // count++;
             matched_user = hnsw->search(features, 1);// 特征搜索(返回最近1个匹配的用户名)
         }
 
@@ -176,7 +178,15 @@ private:
                 }
                 // 调用人脸处理函数处理 YOLO 检测到的人脸            
                 // 如果检测到人脸，处理并创建 QPixmap
-                if (result.size() > 1) std::string uname = processFaces(result);
+                if (result.size() > 1) {
+                    std::string uname = processFaces(result);
+                    // 检查是否已经记录过该用户
+                    if (recordedNames.find(uname) == recordedNames.end() && !uname.empty()) {
+                        std::cout << "New user detected: " << uname << std::endl; 
+                        recordedNames.insert(uname);  // 将用户名添加到集合中
+                        attendanceDatabase->insertRecord(uname, "IN");// 记录用户的最早出现
+                    }
+                }
                 QImage img((uchar*)(result[0].data), static_cast<int>(result[0].cols), 
                                 static_cast<int>(result[0].rows), static_cast<int>(result[0].step), QImage::Format_RGB888);
                 pixmap = QPixmap::fromImage(img.rgbSwapped());
@@ -209,6 +219,8 @@ private:
     std::function<void(const QPixmap&)> callback;
     cv::Mat image;
     bool stopFlag;
+    // 类的成员变量，存储已记录的用户名称
+    std::set<std::string> recordedNames;    
 
     std::string hnswconfg = "./hnsw.bin";
 
@@ -217,6 +229,7 @@ private:
     Yolo *yolo = nullptr;
     FaceNet *facenet = nullptr;
     FaceDatabase *database = nullptr;
+    AttendanceDatabase *attendanceDatabase = nullptr;
 };
 
 #endif // IMAGEPROCESSOR_H

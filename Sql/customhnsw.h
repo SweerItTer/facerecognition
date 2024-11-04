@@ -67,7 +67,7 @@ public:
             if(item.first < 1.1f){// 阈值
                 name = indexMap[item.second];
 
-                std::cout << "Name: " << name  << " Distance: " << item.first << std::endl;
+                //std::cout << "Name: " << name  << " Distance: " << item.first << std::endl;
                 break;
             } else {
                 continue;
