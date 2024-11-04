@@ -118,7 +118,7 @@ std::vector<float> FaceNet::outputs(const cv::Mat& image, const std::vector<int6
 		)
 	);
 
-	std::cout << "----FaceNet start run-----\n";
+	// std::cout << "----FaceNet start run-----\n";
 	// 运行模型推理
 	std::vector<Ort::Value> outputTensorsOrt = session->Run(
 		Ort::RunOptions{nullptr},
