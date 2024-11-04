@@ -678,5 +678,17 @@ void enterface::on_but_end_clicked()
 // 录入下一个人
 void enterface::on_but_nextpeople_clicked()
 {
+    ui->le_name->clear();
+    ui->le_ID->clear();
+    ui->le_class->clear();
+    ui->cbB_college->setCurrentIndex(0);
+    ui->cbB_grade->setCurrentIndex(0);
+
+    ui->stackedWidget->setCurrentIndex(0);
+
+    ui->lb_photo1->clear();
+    ui->lb_photo2->clear();
+    ui->lb_photo3->clear();
+
     
 }
