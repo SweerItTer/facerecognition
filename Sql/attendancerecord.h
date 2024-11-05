@@ -18,6 +18,10 @@ struct AttendanceItem {
 
 class AttendanceDatabase {
 public:
+    AttendanceDatabase(MYSQL* MYSQL_conn){
+        conn = MYSQL_conn;
+    }
+    
     AttendanceDatabase(const std::string& host, const std::string& user, 
                       const std::string& password, const std::string& db_name, 
                       const unsigned int port = 3306) {
@@ -52,8 +56,14 @@ public:
 
     // 插入打卡记录
     bool insertRecord(const std::string& name, const std::string& record_type) {
+        /*
         std::string query = "INSERT INTO AttendanceRecords (name, timestamp, record_type) "
-                           "VALUES (?, NOW(), ?)";
+                           "VALUES (?, NOW(), ?)";*/
+        std::string query = "INSERT INTO AttendanceRecords (name, timestamp, record_type) "
+                        "VALUES (?, NOW(), ?) "
+                        "ON DUPLICATE KEY UPDATE "
+                        "timestamp = NOW(), "
+                        "record_type = VALUES(record_type)";
 
         MYSQL_STMT* stmt = mysql_stmt_init(conn);
         if (!stmt) {

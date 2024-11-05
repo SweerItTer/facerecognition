@@ -150,6 +150,10 @@ std::memcpy(feature_vectors[i-1].data(), row[i], lengths[i]);
         return all_features;
     }
 
+    MYSQL* getConnection() {
+        return conn;
+    }
+
 private:
     std::mutex db_mutex; // 用于同步数据库访问的互斥锁
     MYSQL*  conn;
