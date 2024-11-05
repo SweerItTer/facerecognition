@@ -17,7 +17,7 @@ enterface::enterface(QWidget *parent, Yolo *yolo,  FaceNet *facenet, FaceDatabas
     InitStyle();
     connect(ui->stackedWidget, &QStackedWidget::currentChanged, this, &enterface::pagechangebutton);
     
-    page = ui->stackedWidget->currentIndex();
+    // page = ui->stackedWidget->currentIndex();
     
     connect(timer,&QTimer::timeout,this,&enterface::updateFrame);
 
@@ -215,16 +215,16 @@ void enterface::InitStyle()
     ui->but_facecut->setStyleSheet(setPage_butStyle);
     ui->but_save->setStyleSheet(setPage_butStyle);
 
-
-    QIcon delIcon; // 删除按钮图标
-    delIcon.addFile(":/del_on.png", QSize(), QIcon::Normal);     // 正常状态
-    delIcon.addFile(":/del.png", QSize(), QIcon::Active); // 按下状态
-    ui->but_delet1->setIcon(delIcon);
-    ui->but_delet1->setIconSize(QSize(30, 30)); // 设置图标的大小
-    ui->but_delet2->setIcon(delIcon);
-    ui->but_delet2->setIconSize(QSize(30, 30)); // 设置图标的大小
-    ui->but_delet3->setIcon(delIcon);
-    ui->but_delet3->setIconSize(QSize(30, 30)); // 设置图标的大小
+    but_del_style();
+    // QIcon delIcon; // 删除按钮图标
+    // delIcon.addFile(":/del_on.png", QSize(), QIcon::Disabled); // 禁用状态
+    // delIcon.addFile(":/del.png", QSize(), QIcon::Normal); // 正常状态
+    // ui->but_delet1->setIcon(delIcon);
+    // ui->but_delet1->setIconSize(QSize(30, 30)); // 设置图标的大小
+    // ui->but_delet2->setIcon(delIcon);
+    // ui->but_delet2->setIconSize(QSize(30, 30)); // 设置图标的大小
+    // ui->but_delet3->setIcon(delIcon);
+    // ui->but_delet3->setIconSize(QSize(30, 30)); // 设置图标的大小
 
 
 
@@ -388,7 +388,7 @@ void enterface::pagechangebutton()
     ui->rail_2->setStyleSheet(labelStyle);
     ui->rail_3->setStyleSheet(labelStyle);
 
-    switch (page)
+    switch (ui->stackedWidget->currentIndex())
     {
     case 0 :
         ui->but_data->setIcon(tickIcon_on);
@@ -555,17 +555,14 @@ void enterface::updateFrame()
     mat_panorama = retImg[0];
     if(retImg.size() > 1){
         mat_face = retImg[1];
+        retImg[retImgIndex].copyTo(frame);
     }
-    
 
     retImg[0].copyTo(frame);    
 
-    //将图像转换为qt能够处理的格式
     cv::cvtColor(frame,frame,cv::COLOR_BGR2RGB);
     cv::flip(frame,frame,1);
-    //将opcv的mat对象转换为img对象
     QImage videoimg = QImage(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
-    //根据标签大小调整图片
     QPixmap pixmap = QPixmap::fromImage(videoimg);
     pixmap = pixmap.scaled(ui->lb_camera->size(),Qt::KeepAspectRatio);
     ui->lb_camera->setPixmap(pixmap);//将调整后的图片放到标签上
@@ -630,22 +627,56 @@ void enterface::on_but_save_clicked()
         QMessageBox::warning(this, tr("Save images excessively"),
          tr("The image has reached the maximum limit \n please delete the image first"));
     }
+    but_del_style();
     timer->start(100);
 }
- // 删除图片1
+
+ // 删除按键的样式
+void enterface::but_del_style()
+{
+    QIcon delIcon; // 删除按钮图标
+    delIcon.addFile(":/del_on.png", QSize(), QIcon::Normal); // 禁用状态
+    delIcon.addFile(":/del.png", QSize(), QIcon::Disabled); // 正常状态
+
+    ui->but_delet1->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_delet2->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_delet3->setIconSize(QSize(30, 30)); // 设置图标的大小
+
+    ui->but_delet1->setIcon(delIcon);
+    ui->but_delet2->setIcon(delIcon);    
+    ui->but_delet3->setIcon(delIcon);
+
+    if(ui->lb_photo1->pixmap() == nullptr || ui->lb_photo1->pixmap()->isNull()){
+        ui->but_delet1->setEnabled(false);
+    }else{
+        ui->but_delet1->setEnabled(true);
+    }
+    if(ui->lb_photo2->pixmap() == nullptr || ui->lb_photo2->pixmap()->isNull()){
+        ui->but_delet2->setEnabled(false);
+    }else{
+        ui->but_delet2->setEnabled(true);
+    }
+    if(ui->lb_photo3->pixmap() == nullptr || ui->lb_photo3->pixmap()->isNull()){
+        ui->but_delet3->setEnabled(false);
+    }else{
+        ui->but_delet3->setEnabled(true);
+    }
+}
+ // 删除图片
 void enterface::on_but_delet1_clicked()
 {
     ui->lb_photo1->clear();
+    but_del_style();
 }
- // 删除图片2
 void enterface::on_but_delet2_clicked()
 {
     ui->lb_photo2->clear();
+    but_del_style();
 }
- // 删除图片3
 void enterface::on_but_delet3_clicked()
 {
     ui->lb_photo3->clear();
+    but_del_style();
 }
 
 // 录入信息
@@ -685,10 +716,9 @@ void enterface::on_but_nextpeople_clicked()
     ui->cbB_grade->setCurrentIndex(0);
 
     ui->stackedWidget->setCurrentIndex(0);
+    pagechangebutton();
 
     ui->lb_photo1->clear();
     ui->lb_photo2->clear();
     ui->lb_photo3->clear();
-
-    
 }
