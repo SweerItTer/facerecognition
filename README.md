@@ -22,25 +22,6 @@
 3. **人脸识别模块** (Facenet目录)
    - 使用FaceNet模型提取人脸特征
    - 通过HNSW算法构建高效的特征索引，实现快速人脸匹配
-   - 采用双重验证机制提高识别准确性：
-     1. HNSW快速检索：从特征库中快速筛选出最可能的候选项
-     2. 余弦相似度二次验证：对候选项进行精确度量，通过严格的相似度阈值确保匹配准确性
-   ```cpp
-   // 余弦相似度计算示例
-   float cosine_similarity(const std::vector<float>& v1, const std::vector<float>& v2) {
-       float dot_product = 0.0f;
-       float norm1 = 0.0f;
-       float norm2 = 0.0f;
-       
-       for (size_t i = 0; i < v1.size(); i++) {
-           dot_product += v1[i] * v2[i];
-           norm1 += v1[i] * v1[i];
-           norm2 += v2[i] * v2[i];
-       }
-       
-       return dot_product / (sqrt(norm1) * sqrt(norm2));
-   }
-   ```
 
 4. **数据管理模块** (Sql目录)
    - 封装数据库操作
@@ -51,12 +32,11 @@
 
 ## 系统要求
 ### 依赖项
-- OpenCV 4.5.1
+- OpenCV
 - FFmpeg
 - ONNX Runtime
-- Qt 5.12
+- Qt
 - MySQL
-- Inno Setup 6（仅用于生成安装包）
 
 ### 平台支持
 - 当前支持：Windows
@@ -127,46 +107,6 @@ cmake ..
 cmake --build .
 ```
 
-### 生成安装包
-项目提供了自动化的安装包生成工具，位于`installer`目录下：
-
-```
-installer/
-├── config.ini          # 配置文件（版本号、路径等）
-├── deploy.bat          # 部署脚本
-└── setup.iss.template  # Inno Setup模板文件
-```
-
-#### 使用方法
-1. 进入installer目录：
-```bash
-cd installer
-```
-
-2. 运行部署脚本：
-```bash
-# 清理并重新构建Debug版本
-deploy.bat clean debug
-
-# 或构建Release版本
-deploy.bat clean release
-
-# 不清理直接构建
-deploy.bat
-```
-
-3. 生成的安装包位于项目根目录的`installer_output`文件夹中：
-```
-installer_output/FaceRecognition_Setup_X.X.X.X.exe
-```
-
-#### 配置说明
-在`installer/config.ini`中可以配置：
-- 版本号
-- 公司信息
-- 依赖库路径
-- Inno Setup路径
-
 ## 项目结构
 ```
 .
@@ -175,12 +115,11 @@ installer_output/FaceRecognition_Setup_X.X.X.X.exe
 ├── Ffmpeg/                 # FFmpeg视频处理相关代码
 ├── Sql/                    # 数据库操作相关代码
 ├── UI/                     # Qt用户界面代码
-├── Yolov8/                # YOLOv8模型及相关代码
-├── installer/             # 安装包生成工具
+├── Yolov8/                 # YOLOv8模型及相关代码
 ├── imageprocessor.h        # 图像处理器头文件
-├── main.cpp               # 主程序入口
-├── script.cpp             # 核心处理脚本
-└── script.h               # 脚本头文件
+├── main.cpp                # 主程序入口
+├── script.cpp              # 核心处理脚本
+└── script.h                # 脚本头文件
 ```
 
 ## 工作流程
@@ -196,7 +135,7 @@ installer_output/FaceRecognition_Setup_X.X.X.X.exe
 - 使用多级处理策略，仅在检测到人脸时才进行特征提取，节省计算资源
 
 ## 注意事项
-- 确保所有依赖正确安装
+- 确保所有依赖��正确安装
 - 数据库配置需要根据实际环境调整
 - 模型文件在对应文件夹下
 ```
@@ -209,51 +148,3 @@ installer_output/FaceRecognition_Setup_X.X.X.X.exe
 - [ ] 优化检测和识别速度
 - [ ] 增加更多配置选项
 
-## 使用指南
-### 初始配置
-1. **数据库设置**
-   - 确保MySQL服务已启动
-   - 执行数据库初始化脚本（见数据库配置章节）
-   - 检查数据库连接配置
-
-2. **摄像头/视频流配置**
-   - 在界面中输入RTSP流地址
-
-### 人脸注册
-1. 点击"人脸注册"按钮
-2. 输入人员相关信息
-3. 按照提示采集3张不同的人脸照片
-4. 系统会自动提取特征并存入数据库
-
-### 实时识别
-1. 启动视频流
-2. 系统会自动进行：
-   - 人脸检测
-   - 特征提取
-   - 身份识别
-3. 识别结果会实时显示在界面上
-4. 同时自动记录到数据库中
-
-### 历史记录查询
-- [ ] 实现
-1. 点击"历史记录"按钮
-2. 可按以下条件筛选：
-   - 时间范围
-   - 人员姓名
-   - 识别位置
-
-### 常见问题处理
-1. **视频流无法连接**
-   - 检查网络连接
-   - 验证RTSP地址是否正确
-   - 确认视频服务器是否在线
-
-2. **识别准确率问题**
-   - 确保注册照片质量良好
-   - 调整摄像头角度和光线
-   - 可以重新采集人脸特征
-
-3. **数据库连接失败**
-   - 检查MySQL服务状态
-   - 验证数据库用户名和密码
-   - 确认数据库端口是否正确
