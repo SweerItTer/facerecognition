@@ -19,17 +19,19 @@ QT_CHARTS_USE_NAMESPACE
 #include "./qcustomplot.h"
 #include "../script.h"
 #include "UI/enterface.h"
+#include "UI/Login.h"
 
 class Yolo;
 class FaceNet;
 class FaceDatabase;
-
+class enterface;
+class Login;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class enterface;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -48,8 +50,6 @@ public:
     
 
 private slots:
-    // void setYolo
-
     // 重绘窗口
     virtual void paintEvent(QPaintEvent *event) override; 
     virtual void mousePressEvent(QMouseEvent *event) override;
@@ -60,6 +60,7 @@ private slots:
     void on_but_min_clicked();
     void on_but_off_clicked();
     // 左侧边框按键
+    void on_but_user_clicked();
     void on_but_home_clicked(); 
     void on_but_camera_clicked();
     void on_but_data_clicked();
@@ -95,6 +96,7 @@ private:
     // FaceDatabase *database_  = nullptr; 
 	Script *callback = nullptr;
     enterface *ui_enterface = nullptr;
+    Login *ui_login = nullptr;
     Ort::Session *session_ = nullptr;
 
     // 保存上一次打开的路径

@@ -50,9 +50,16 @@ MainWindow::~MainWindow()
         delete callback;
         callback = nullptr;
     }
-    if(ui_enterface)
+    if(ui_enterface){
         delete ui_enterface;
         ui_enterface = nullptr; // 将指针设为nullptr
+    }
+    if(ui_login){
+        delete ui_login;
+        ui_login = nullptr; // 将指针设为nullptr
+    }
+    
+
     delete ui;
 }
 
@@ -106,9 +113,6 @@ void MainWindow::StyleSheetInit()
     ui->but_set->setCheckable(true);
 
     QString sidebar_butStyle = QString("QPushButton{"
-                                    // "text-align: left;" // 文字左对齐
-                                    // "icon-align: left;" // 图标左对齐
-                                    // "padding-left: 10px;" // 增加左侧内边距，为图标留出空间
                                     "background-color: rgba(255, 255, 255, 0);"
                                     "border-radius:8px;"
                                     "border-style:none;"
@@ -118,9 +122,6 @@ void MainWindow::StyleSheetInit()
                                     "font-weight:bold;"
                                     "color: rgb(255, 255, 255);"
                                     "}"
-                                    // "QPushButton:icon {"
-                                    // "margin-right: 8px;" // 设置图标与文本之间的间距
-                                    // "}"
                                     "QPushButton:hover{"
                                     "background-color: rgba(179, 222, 245, 0.5);"
                                     "}"
@@ -215,7 +216,7 @@ void MainWindow::StyleSheetInit()
 
 
     // 主页
-    QImage image (QString(":/lb_camaretest.png")) ;
+    QImage image (QString(":/lb_camaretest.png"));
     QPixmap pixmap = QPixmap::fromImage(image);
     pixmap = pixmap.scaled(ui->lb_cameramin->size(),Qt::KeepAspectRatio);
     pixmap = getRoundRectPixmap(pixmap,pixmap.size(),20);
@@ -508,7 +509,22 @@ QPixmap MainWindow::getRoundRectPixmap(QPixmap srcPixMap, const QSize & size, in
     return destImage;
 }
 
-
+// 用户界面
+void MainWindow::on_but_user_clicked()
+{
+    if(ui->but_user->text() == "点击登录")
+    {
+        ui_login = new Login(nullptr);
+        ui_login->setCallback([this]() {
+            if (callback) {
+                callback->resume();
+            }
+        });
+        ui_login->setWindowModality(Qt::ApplicationModal);
+        ui_login->show();
+        
+    }
+}
 
 // 主界面
 void MainWindow::on_but_home_clicked()
@@ -667,17 +683,6 @@ void MainWindow::setBarChart()
     legend->setBorderPen(QPen(QColor(0,0,0,0)));
     legend->setIconSize(10,10); // 图例图标的大小
     legend->setTextColor(QColor(208, 208, 211));
-
-    // 下述注释方法会导致图表和图例之间有一段距离，无法消除
-//    legend->addElement(0,1,legend->item(0));
-//    legend->addElement(0,2,legend->item(1));
-//    legend->addElement(0,3,legend->item(2));
-//    legend->addElement(0,4,legend->item(3));
-//    legend->setMargins(QMargins(0,0,100,0));
-//    int count = customPlot->plotLayout()->rowCount();
-//    customPlot->plotLayout()->addElement(count,0,legend);
-//    customPlot->plotLayout()->setRowStretchFactor(count,0.0001);
-//    customPlot->axisRect()->insetLayout()->setInsetAlignment(0,Qt::AlignCenter|Qt::AlignBottom);
 
     legend->setFillOrder(QCPLayoutGrid::foColumnsFirst);
     customPlot->plotLayout()->setMargins(QMargins(0, 0, 0, 20));           // 首先为底部预留出足够的空间

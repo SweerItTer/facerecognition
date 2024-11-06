@@ -88,6 +88,7 @@ private slots:
     void on_but_facecut_clicked(); // 人脸分割
     void on_but_save_clicked(); // 保存图片
 
+    void but_del_style(); // 删除按键的样式
     void on_but_delet1_clicked(); // 删除图片1
     void on_but_delet2_clicked(); // 删除图片2
     void on_but_delet3_clicked(); // 删除图片3
