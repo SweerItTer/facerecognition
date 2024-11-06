@@ -24,5 +24,6 @@
         <file>tick_on.png</file>
         <file>rail.png</file>
         <file>rail_on.png</file>
+        <file>app.ico</file>
     </qresource>
 </RCC>

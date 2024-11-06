@@ -77,6 +77,8 @@ public:
         callback = cb;
     }
 
+    bool paused = false;  // 暂停标志
+
 private:
     
     // 处理多张人脸
@@ -116,6 +118,7 @@ private:
         cv::Mat grayPrev, grayNext;
 
         while (!stopFlag) {
+            if(paused) continue;  // 如果暂停标志被设置，则跳过当前循环
             // 等待条件变量的通知，直到有新图像或停止标志被触发
             cv.wait(lock, [this] { return !image.empty() || stopFlag; });
             
@@ -132,7 +135,15 @@ private:
 
             // 计算光流
             cv::Mat flow;
-            cv::calcOpticalFlowFarneback(grayPrev, grayNext, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
+            try
+            {
+                cv::calcOpticalFlowFarneback(grayPrev, grayNext, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
+            }
+            catch(const std::exception& e)
+            {
+                throw std::runtime_error(e.what());  // 跳过当前循环
+            }
+            
 
 
             // 检查 flow 的维度

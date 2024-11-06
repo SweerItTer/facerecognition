@@ -519,6 +519,9 @@ void MainWindow::on_but_home_clicked()
 // 摄像机
 void MainWindow::on_but_camera_clicked()
 {
+    callback->resume();
+    std::cout << "play thread resume" << std::endl;
+
     // 打开摄像头
     if(isplay) ui->stackedWidget->setCurrentIndex(1);
     else{
@@ -538,6 +541,8 @@ void MainWindow::on_but_data_clicked()
 // 设置
 void MainWindow::on_but_set_clicked()
 {
+    callback->pasue();
+    std::cout << "play thread pause" << std::endl;
     ui->stackedWidget->setCurrentIndex(3);
 }
 

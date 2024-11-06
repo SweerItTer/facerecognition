@@ -1,0 +1,37 @@
+#define MyAppVersion "@VERSION@"
+#define MyAppName "@APP_NAME@"
+#define MyAppPublisher "@COMPANY_NAME@"
+#define MyAppDescription "@APP_DESCRIPTION@"
+
+[Setup]
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppPublisher={#MyAppPublisher}
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+DefaultDirName={commonpf64}\{#MyAppName}
+DefaultGroupName={#MyAppName}
+UninstallDisplayIcon={app}\{#MyAppName}.exe
+MinVersion=6.1sp1
+OutputDir=..\..\
+OutputBaseFilename={#MyAppName}_Setup_{#MyAppVersion}
+Compression=lzma
+SolidCompression=yes
+PrivilegesRequired=admin
+SetupIconFile=..\UI\Resources\app.ico
+
+[Files]
+Source: "..\UI\Resources\app.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\build\bin\@BUILD_TYPE@\{#MyAppName}.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\build\bin\@BUILD_TYPE@\*.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\build\bin\@BUILD_TYPE@\platforms\*"; DestDir: "{app}\platforms"; Flags: ignoreversion recursesubdirs
+Source: "..\..\build\bin\@BUILD_TYPE@\models\*"; DestDir: "{app}\models"; Flags: ignoreversion recursesubdirs
+Source: "..\..\build\bin\@BUILD_TYPE@\resources\*"; DestDir: "{app}\resources"; Flags: ignoreversion recursesubdirs
+Source: "..\..\build\bin\@BUILD_TYPE@\config.ini"; DestDir: "{app}"; Flags: ignoreversion
+
+[Icons]
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppName}.exe"
+Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppName}.exe"
+
+[Run]
+Filename: "{app}\{#MyAppName}.exe"; Description: "Launch {#MyAppName}"; Flags: postinstall nowait 

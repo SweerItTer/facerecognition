@@ -186,7 +186,7 @@ int Script::play() {
 						mw->ui->te_onnxmessage->append(str);
 					 });
 	
-	if ( is_rtspurl || 1) {
+	if ( is_rtspurl || 1 ) {
 		// 创建拉流线程
 		if (p_thread) {
 			p_thread->Stop();
@@ -194,11 +194,13 @@ int Script::play() {
 				std::cout << "Waitting...." << std::endl;
 			}
 			delete p_thread; // 释放线程
+			imageProcessor->paused = true; // 停止处理线程
 		}
 
 		p_thread = new PlayThread(rtsp_url);
 		std::cout << "PlayThread created." << std::endl;
 		p_thread->Start();
+		imageProcessor->paused = false; // 开始处理线程
 		// 拉流信号
 		QObject::connect(p_thread, &PlayThread::pixframesSignal, this,
 						 &Script::prossPixSignal);

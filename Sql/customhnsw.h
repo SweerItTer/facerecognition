@@ -37,6 +37,17 @@ private:
         return avg;
     }
 
+    // 添加计算余弦相似度的辅助函数
+    float cosine_similarity(const std::vector<float>& a, const std::vector<float>& b) {
+        float dot = 0.0, denom_a = 0.0, denom_b = 0.0;
+        for (size_t i = 0; i < a.size(); i++) {
+            dot += a[i] * b[i];
+            denom_a += a[i] * a[i];
+            denom_b += b[i] * b[i];
+        }
+        return dot / (sqrt(denom_a) * sqrt(denom_b));
+    }
+
 public:
     CustomHNSW(size_t maxElements){//, size_t M = 16, size_t efConstruction = 200) {
         space = new hnswlib::L2Space(128);
@@ -64,17 +75,20 @@ public:
         while (!result.empty()) {
             auto item = result.top();  // 获取队列的顶部元素
             result.pop();  // 弹出顶部元素
-            if(item.first < 1.1f){// 阈值
-                name = indexMap[item.second];
-
-                //std::cout << "Name: " << name  << " Distance: " << item.first << std::endl;
-                break;
-            } else {
-                continue;
-            }
+            if(item.first > 1.1f) continue; // 超过阈值则继续(1.1是示例阈值,可以根据需要调整,越大越严格)
+            
+            std::cout << "Distance: " << item.first << std::endl;
+            // 获取存储在HNSW中的平均特征向量
+            std::vector<float> stored_vector = alg->getDataByLabel<float>(item.second);
+            // 计算余弦相似度
+            float cos_sim = cosine_similarity(query, stored_vector);
+            std::cout << "Cosine Similarity: " << cos_sim << std::endl;
+            
+            if(cos_sim > 0.6f) continue;// 余弦相似度阈值判断 (0.6是示例阈值,可以根据需要调整,越小越严格)
+            name = indexMap[item.second];
+            std::cout << "Name: " << name << std::endl;
+            break;
         }
-        if (name == "")
-            printf("No result found!\n");
         
         return name;
     }
