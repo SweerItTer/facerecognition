@@ -174,6 +174,9 @@ int Script::ensureEnter(std::string modelPath, std::string url)// 初始化检�
 	}
 	rtsp_url = url;
 	std::cout << "Script is inited." << std::endl;
+	imageProcessor->resetHSWN();
+	std::cout << "Reset HSWN." << std::endl;
+
 	return 0;
 }
 
