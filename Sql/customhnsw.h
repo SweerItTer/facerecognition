@@ -67,12 +67,12 @@ public:
             // 打印调试信息
             std::cout << "Adding item: " << item.name << " with ID: " << id << std::endl;
             
-            // 打印所有向量的位置
-            std::cout << "Vector positions: ";
-            for(int i = 0; i < 10; ++i) {
-                std::cout << id*10 + i << " ";
-            }
-            std::cout << std::endl;
+            // // 打印所有向量的位置
+            // std::cout << "Vector positions: ";
+            // for(int i = 0; i < 10; ++i) {
+            //     std::cout << id*10 + i << " ";
+            // }
+            // std::cout << std::endl;
             
             // 检查所有向量
             for(const auto& vec : item.vectors) {
@@ -150,10 +150,10 @@ public:
         
         if(candidates.empty()) return "";
         // 检查候选人的投票数
-        std::cout << "\nCandidate votes:" << std::endl;
-        for (const auto& pair : candidates) {
-            std::cout << pair.first << ": " << pair.second << " votes" << std::endl;
-        }
+        // std::cout << "\nCandidate votes:" << std::endl;
+        // for (const auto& pair : candidates) {
+        //     std::cout << pair.first << ": " << pair.second << " votes" << std::endl;
+        // }
         
         // 只有当某个候选人得票超过阈值时才返回结果
         if (!candidates.empty()) {
@@ -166,7 +166,7 @@ public:
             );
             
             // 增加投票阈值，因为现在有更多的特征向量
-            if (best_candidate->second >= 3) {  // 要求至少3个向量匹配
+            if (best_candidate->second >= 1) {  // 要求至少1个向量匹配
                 name = best_candidate->first;
                 std::cout << "\nSelected candidate: " << name 
                          << " with " << best_candidate->second << " votes" 

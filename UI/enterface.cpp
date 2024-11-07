@@ -1,4 +1,4 @@
-#include "enterface.h"
+﻿#include "enterface.h"
 #include "ui_enterface.h"
 #pragma execution_character_set("UTF-8")
 #define MYLOG qDebug() << "[" << __FILE__ << ":" << __LINE__ << "]"
@@ -18,6 +18,8 @@ enterface::enterface(QWidget *parent, Yolo *yolo,  FaceNet *facenet, FaceDatabas
     connect(ui->stackedWidget, &QStackedWidget::currentChanged, this, &enterface::pagechangebutton);
     
     // page = ui->stackedWidget->currentIndex();
+    // vec_face.resize(10);
+
     
     connect(timer,&QTimer::timeout,this,&enterface::updateFrame);
 
@@ -592,7 +594,34 @@ void enterface::on_but_save_clicked()
 {
     if(mat_face.empty()) return;
     timer->stop();
-    if(ui->lb_photo1->pixmap() == nullptr || ui->lb_photo1->pixmap()->isNull())
+
+    if(vec_face.size() >= 10){
+        QMessageBox::warning(this, tr("Save images excessively"),
+            tr("The image has reached the maximum limit \n please delete the image first"));
+        but_del_style();
+        timer->start(100);
+        return;    
+    }
+
+    // 保存当前图像到vec_face中
+    cv::Mat current_face = mat_face.clone();
+    cv::cvtColor(current_face, current_face, cv::COLOR_BGR2RGB);
+    cv::flip(current_face, current_face, 1);
+    vec_face.push_back(current_face);
+
+    // 将最新图片显示到下一个 QLabel 中，循环覆盖显示
+    static int label_index = 0;  // 跟踪显示位置
+    std::vector<QLabel*> photos_l = {ui->lb_photo1, ui->lb_photo2, ui->lb_photo3};
+
+    cv::Mat img = vec_face.back();
+    QImage qimg = QImage(img.data, img.cols, img.rows, img.step, QImage::Format_RGB888);
+    QPixmap pixmap = QPixmap::fromImage(qimg).scaled(photos_l[label_index]->size(), Qt::KeepAspectRatio);
+    photos_l[label_index]->setPixmap(pixmap);
+
+    // 更新下一个标签位置
+    label_index = (label_index + 1) % photos_l.size();
+    /*
+	if(ui->lb_photo1->pixmap() == nullptr || ui->lb_photo1->pixmap()->isNull())
     {
         mat_1 = mat_face.clone();
         cv::cvtColor(mat_1, mat_1, cv::COLOR_BGR2RGB);
@@ -627,6 +656,7 @@ void enterface::on_but_save_clicked()
         QMessageBox::warning(this, tr("Save images excessively"),
          tr("The image has reached the maximum limit \n please delete the image first"));
     }
+    */
     but_del_style();
     timer->start(100);
 }
@@ -662,7 +692,8 @@ void enterface::but_del_style()
         ui->but_delet3->setEnabled(true);
     }
 }
- // 删除图片
+// 删除图片
+// 目前只是删除表面的图片，实际上容器内的图片并不会被删除
 void enterface::on_but_delet1_clicked()
 {
     ui->lb_photo1->clear();
@@ -685,17 +716,20 @@ void enterface::EnterInformation()
     name_ = ui->le_name->text().toStdString();
 
     std::vector<std::vector<float>> feature_vectors;
-    feature_vectors.emplace_back(facenet_->outputs(mat_1, {1, 3, 160, 160}));
-    feature_vectors.emplace_back(facenet_->outputs(mat_2, {1, 3, 160, 160}));
-    feature_vectors.emplace_back(facenet_->outputs(mat_3, {1, 3, 160, 160}));
-
-    int ret = database_->insertFeatures(name_, feature_vectors);
-    if(ret < 1)
+     // 循环遍历 vec_face 中的每一张人脸图片，提取特征向量
+    for (const cv::Mat& face : vec_face)
     {
-        MYLOG<< "insert features successfully 插入特征成功";
-        name = name_;
+        // 这里假设 facenet_->outputs 处理输入是 {1, 3, 160, 160} 尺寸的图片
+        std::vector<float> feature_vector = facenet_->outputs(face, {1, 3, 160, 160});
+        feature_vectors.push_back(feature_vector);
     }
-    
+
+    bool ret = database_->insertFeatures(name_, feature_vectors);
+    if(!ret) MYLOG << "insert features failed 插入特征失败";
+
+    MYLOG<< "insert features successfully 插入特征成功";
+    vec_face.clear();
+    name = name_;
 
     // bool insertFeatures(const std::string& name, const std::vector<std::vector<float>>& feature_vectors) 
 }

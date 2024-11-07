@@ -111,7 +111,7 @@ private:
             // 直接添加DataItem，新的addItem方法会处理三个特征向量
             hnsw->addItem(item);
         }
-        std::cout << "HNSW index built with " << all_features.size() * 3 << " feature vectors." << std::endl;
+        std::cout << "HNSW index built with " << all_features.size() << " feature vectors." << std::endl;
     }
 
     void process() {
@@ -205,7 +205,7 @@ private:
                     std::string uname = processFaces(result);
                     // 检查是否已经记录过该用户
                     if (recordedNames.find(uname) == recordedNames.end() && !uname.empty()) {
-                        std::cout << "New user detected: " << uname << std::endl; 
+                        std::cout << "New Co-worker detected: " << uname << std::endl; 
                         recordedNames.insert(uname);  // 将用户名添加到集合中
                         attendanceDatabase->insertRecord(uname, "IN");// 记录用户的最早出现
                     }
