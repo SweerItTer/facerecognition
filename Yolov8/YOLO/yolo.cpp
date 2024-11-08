@@ -243,7 +243,7 @@ std::vector<cv::Mat> Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv
             bool should_continue = true;
             for (index = 0; index < output_tensor_size; ++index) { //输出节点的数值相乘 1*84*8400
                 if (value[index] > 0 && value[index] < 1) { //识别的分数
-                    if (value[index] > 0.5) { //人脸识别的阈值
+                    if (value[index] > 0.66) { //人脸识别的阈值
                         float  strValue = QString::number(value[index], 'f', 2).toFloat(); // 精确到两位小数
                         int id_1 = index/output_node_dims[2];
                         int id_2 = index-(id_1*output_node_dims[2]);

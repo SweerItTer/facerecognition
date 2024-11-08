@@ -136,7 +136,7 @@ int Script::loadConfig(QFile &configFile) {
 void Script::startProcessingTimer() {
 	processingTimer = new QTimer(this);
 	connect(processingTimer, &QTimer::timeout, this, &Script::processNextFrame);
-	processingTimer->start(5); // 每50ms处理一帧，可以根据需要调整
+	processingTimer->start(2); // 每50ms处理一帧，可以根据需要调整
 }
 
 void Script::processNextFrame() {
@@ -246,6 +246,5 @@ void Script::prossCVSignal(cv::Mat image) {
 void Script::updateUI(const QPixmap& image) {
 	QPixmap scaledPixmap = image.scaled(mw->ui->lb_camera->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	mw->ui->lb_camera->setPixmap(scaledPixmap);
-
 }
 
