@@ -15,3 +15,12 @@ CREATE TABLE IF NOT EXISTS FaceFeatures (
     feature_vector2 VARBINARY(512) NOT NULL,
     feature_vector3 VARBINARY(512) NOT NULL
 );
+# 添加第4到第10个特征向量(新版需求)
+ALTER TABLE FaceFeatures
+ADD COLUMN feature_vector4 VARBINARY(512),
+ADD COLUMN feature_vector5 VARBINARY(512),
+ADD COLUMN feature_vector6 VARBINARY(512),
+ADD COLUMN feature_vector7 VARBINARY(512),
+ADD COLUMN feature_vector8 VARBINARY(512),
+ADD COLUMN feature_vector9 VARBINARY(512),
+ADD COLUMN feature_vector10 VARBINARY(512);

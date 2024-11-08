@@ -1,4 +1,4 @@
-#ifndef ENTERFACE_H
+﻿#ifndef ENTERFACE_H
 #define ENTERFACE_H
 
 #include <QWidget>
@@ -54,12 +54,13 @@ private:
     int retImgIndex = 0;
 
     cv::Mat mat_panorama; // 全景图
-    cv::Mat mat_face; // 人脸
+	cv::Mat mat_face; // 识别到的人脸
 
     cv::Mat mat_1;
     cv::Mat mat_2;
     cv::Mat mat_3;
 
+	std::vector<cv::Mat> vec_face; // 存储所有人脸图片
 
 private slots:
     // 重绘窗口

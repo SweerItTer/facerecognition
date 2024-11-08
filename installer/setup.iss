@@ -1,9 +1,9 @@
-#define MyAppVersion "0.1.0.0"
+#define MyAppVersion "0.1.1.0"
 #define MyAppName "FaceRecognition"
 #define MyAppPublisher "Your Company Name"
 #define MyAppDescription "Face Recognition Application"
 
-#define MyAppVersion "0.1.0.0"
+#define MyAppVersion "0.1.1.0"
 #define MyAppName "FaceRecognition"
 #define MyAppPublisher "Your Company Name"
 #define MyAppDescription "Face Recognition Application"

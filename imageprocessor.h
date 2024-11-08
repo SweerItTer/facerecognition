@@ -77,6 +77,12 @@ public:
         callback = cb;
     }
 
+    void resetHSWN(){
+        std::lock_guard<std::mutex> lock(mutex);
+        buildHNSWIndex();  // 构建HNSW索引
+    }
+
+
     bool paused = false;  // 暂停标志
 
 private:
@@ -102,9 +108,10 @@ private:
     void buildHNSWIndex() {
         auto all_features = database->getAllFeatures();  // 获取所有人脸特征以及用户名
         for(const auto& item : all_features) {
-            hnsw->addItem(item); // 向HNSW索引中添加人脸特征
+            // 直接添加DataItem，新的addItem方法会处理三个特征向量
+            hnsw->addItem(item);
         }
-        std::cout << "HNSW index built." << std::endl;
+        std::cout << "HNSW index built with " << all_features.size() << " feature vectors." << std::endl;
     }
 
     void process() {
@@ -141,7 +148,12 @@ private:
             }
             catch(const std::exception& e)
             {
-                throw std::runtime_error(e.what());  // 跳过当前循环
+                grayPrev.release();  // 释放上一帧图像
+                grayNext.release();  // 释放当前帧图像
+                flow.release();  // 释放光流
+                std::cerr << "Optical flow calculation failed: " << e.what() << std::endl;
+                // throw std::runtime_error(e.what());  // 跳过当前循环
+                continue;  // 跳过当前循环
             }
             
 
@@ -193,7 +205,7 @@ private:
                     std::string uname = processFaces(result);
                     // 检查是否已经记录过该用户
                     if (recordedNames.find(uname) == recordedNames.end() && !uname.empty()) {
-                        std::cout << "New user detected: " << uname << std::endl; 
+                        std::cout << "New Co-worker detected: " << uname << std::endl; 
                         recordedNames.insert(uname);  // 将用户名添加到集合中
                         attendanceDatabase->insertRecord(uname, "IN");// 记录用户的最早出现
                     }
