@@ -14,12 +14,16 @@
 QT_CHARTS_USE_NAMESPACE
 
 #include <functional> // For std::function
+#include <string>
+#include <iostream>
 
 #include <opencv2/opencv.hpp>
 #include "./qcustomplot.h"
 #include "../script.h"
 #include "UI/enterface.h"
 #include "UI/Login.h"
+#include "facedbwidget.h"
+#include "configure.h"
 
 class Yolo;
 class FaceNet;
@@ -86,14 +90,16 @@ private slots:
 private:
     bool m_leftMousePressed = false; //鼠标是否点中标题栏，是true，否false
     QPoint m_StartPoint ; // 窗口的全局位置
+    
+
 
     QString but_on = QString("QPushButton{background-color: rgb(62, 69, 176);}");// 打开
     QString but_off = QString("QPushButton{background-color: rgba(0, 0, 0, 0);}");// 未打开
-
-    Yolo *yolo = new Yolo(nullptr); // 先创建yolo对象
+    DataDBInfo dbInfo; // 数据库信息
+    Configure *conf; // 配置数据库悬浮窗
+    Yolo *yolo = new Yolo(nullptr); // yolo对象
     FaceNet *facenet = new FaceNet(); // facenet对象
     FaceDatabase *database ; // 人脸数据库对象
-    // FaceDatabase *database_  = nullptr; 
 	Script *callback = nullptr;
     enterface *ui_enterface = nullptr;
     Login *ui_login = nullptr;

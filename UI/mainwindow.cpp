@@ -1,6 +1,10 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "configure.h"
+
+#include <vector>
+#include <unordered_map>
+#include <string>
+#include <sstream>
 
 #define MYLOG qDebug() << "[" << __FILE__ << ":" << __LINE__ << "]"
 static bool isplay = false;
@@ -22,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 将创建好的对象传递给callback
 	callback = new Script(this, yolo, facenet, &database);
-    
+    conf = new Configure();
     // 初始化
     // page0 首页统计图
     setBarChart();
@@ -59,7 +63,7 @@ MainWindow::~MainWindow()
         ui_login = nullptr; // 将指针设为nullptr
     }
     
-
+    delete conf;
     delete ui;
 }
 
@@ -1202,6 +1206,7 @@ void MainWindow::on_but_enterface_clicked()
 // ---------------- HJJ --------------- //
 void MainWindow::on_but_sure_clicked()
 {
+    static int count = 0;
     try { // 加载facenet模型
         bool ret = facenet->loadModel(ui->le_facenetonnx->text());// 加载facenet模型
         if (!ret)
@@ -1225,6 +1230,18 @@ void MainWindow::on_but_sure_clicked()
 	} else {
         QMessageBox::information(this, tr("Init success:"), tr("Successfully configured"));
         isplay = false;
+    }
+    // 数据库配置
+    if(count == 0){
+        std::unordered_map<std::string, std::string> info = conf->getDatabaseConfig();
+        dbInfo.host = info["host"];
+        std::istringstream ss(info["port"]);
+        ss >> dbInfo.port;
+        dbInfo.user = info["userName"];
+        dbInfo.password = info["password"];
+        dbInfo.database = "FaceDB";
+        ui->FacedbWidget->setDBInfo(&dbInfo);
+        count++;
     }
 }
 
@@ -1272,9 +1289,8 @@ void MainWindow::on_but_facenetonnx_clicked()
 // 数据库配置
 void MainWindow::on_but_storagefile_clicked()
 {
-    // 打开文件对话框
-    Configure conf;
-    conf.databaseConfigure();
+    // 打开悬浮框
+    conf->databaseConfigure();
 }
 
 

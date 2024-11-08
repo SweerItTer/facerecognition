@@ -485,9 +485,10 @@ void enterface::on_but_next_clicked()
             return;
         }
     }else if(page == 1){
-        if(ui->lb_photo1->pixmap() == nullptr || ui->lb_photo1->pixmap()->isNull()
-            || ui->lb_photo2->pixmap() == nullptr || ui->lb_photo2->pixmap()->isNull()
-            || ui->lb_photo3->pixmap() == nullptr || ui->lb_photo3->pixmap()->isNull())
+        // if(ui->lb_photo1->pixmap() == nullptr || ui->lb_photo1->pixmap()->isNull()
+        //     || ui->lb_photo2->pixmap() == nullptr || ui->lb_photo2->pixmap()->isNull()
+        //     || ui->lb_photo3->pixmap() == nullptr || ui->lb_photo3->pixmap()->isNull())
+        if(vec_face.size() < 10) // 以人脸图片为准
         {
             QMessageBox::warning(this, tr("Incomplete information"),
              tr("Please complete the face information first"));
