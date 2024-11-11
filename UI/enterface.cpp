@@ -149,7 +149,7 @@ void enterface::InitStyle()
                                 "font-size:18px;"
                                 "color: rgb(0, 0, 0);"
                                 "}");
-    ui->le_class->setStyleSheet(QLineEditStyle);
+    ui->le_major->setStyleSheet(QLineEditStyle);
     ui->le_name->setStyleSheet(QLineEditStyle);
     ui->le_ID->setStyleSheet(QLineEditStyle);
     // 下拉框样式
@@ -477,7 +477,7 @@ void enterface::on_but_back_clicked()
 void enterface::on_but_next_clicked()
 {
     if(page == 0){
-        if(ui->le_class->text().isEmpty() || ui->le_name->text().isEmpty() || ui->le_ID->text().isEmpty() 
+        if(ui->le_major->text().isEmpty() || ui->le_name->text().isEmpty() || ui->le_ID->text().isEmpty() 
             || ui->cbB_college->currentText().isEmpty() || ui->cbB_grade->currentText().isEmpty())
         {
             QMessageBox::warning(this, tr("Incomplete information"),
@@ -714,7 +714,13 @@ void enterface::on_but_delet3_clicked()
 // 录入信息
 void enterface::EnterInformation()
 {
+    // if(name_ == name) return; // 防止重复录入同一个人
+
     name_ = ui->le_name->text().toStdString();
+    std::string ID = ui->le_ID->text().toStdString();
+    std::string major = ui->le_major->text().toStdString();
+    std::string grade = ui->cbB_grade->currentText().toStdString();
+    std::string college = ui->cbB_college->currentText().toStdString();
 
     std::vector<std::vector<float>> feature_vectors;
      // 循环遍历 vec_face 中的每一张人脸图片，提取特征向量
@@ -728,11 +734,13 @@ void enterface::EnterInformation()
     bool ret = database_->insertFeatures(name_, feature_vectors);
     if(!ret) MYLOG << "insert features failed 插入特征失败";
 
+    bool ret2 = database_->insertIDinformation(name_, ID, major, grade, college);
+    if(!ret2) MYLOG << "insert ID information failed 插入ID信息失败";
+    
     MYLOG<< "insert features successfully 插入特征成功";
     vec_face.clear();
     name = name_;
 
-    // bool insertFeatures(const std::string& name, const std::vector<std::vector<float>>& feature_vectors) 
 }
 
 // ------------------------
@@ -746,7 +754,7 @@ void enterface::on_but_nextpeople_clicked()
 {
     ui->le_name->clear();
     ui->le_ID->clear();
-    ui->le_class->clear();
+    ui->le_major->clear();
     ui->cbB_college->setCurrentIndex(0);
     ui->cbB_grade->setCurrentIndex(0);
 

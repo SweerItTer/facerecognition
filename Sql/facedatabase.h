@@ -32,12 +32,6 @@ public:
         mysql_close(conn);
     }
 
-    /** 
-     * @brief 插入特征向量到数据库
-     * @param user_id           用户的id
-     * @param feature_vectors   人脸特征组
-     * @return bool
-     */
 	// 插入特征向量到数据库
 	bool insertFeatures(const std::string& name, const std::vector<std::vector<float>>& feature_vectors) {
         std::lock_guard<std::mutex> lock(db_mutex); // 自动锁定互斥锁，在作用域结束时自动释放
@@ -100,10 +94,6 @@ public:
 		return true; // 返回成功
 	}
 
-/** 
- * @brief 获取所有用户的特征向量
- * @return all_features     
- */
     // 获取所有用户的特征向量
     std::vector<DataItem> getAllFeatures() {
         std::string query = "SELECT name, feature_vector1, feature_vector2, feature_vector3, "
@@ -158,6 +148,68 @@ public:
         return conn;
     }
 
+//---------------HHL-------------
+// 插入学生信息到数据库
+    bool insertIDinformation(const std::string& name, const std::string& ID,
+                             const std::string& major, const std::string& grade, const std::string& college) 
+    {
+        // SQL查询语句，用于插入或更新学生信息
+        std::string query = "INSERT INTO IDinformation"
+                    "(name, ID, major, grade, college) "
+                    "VALUES (?, ?, ?, ?, ?) "
+                    "ON DUPLICATE KEY UPDATE "
+                    "name = VALUES(name),"
+                    "major = VALUES(major), "
+                    "grade = VALUES(grade), "
+                    "college = VALUES(college)";
+
+
+		// 创建并执行 SQL 语句
+		MYSQL_STMT* stmt = mysql_stmt_init(conn);
+		if (!stmt || mysql_stmt_prepare(stmt, query.c_str(), static_cast<unsigned long>(query.size()))) {
+			std::cerr << "Error: Failed to prepare statement: " << mysql_error(conn) << std::endl;
+			return false;
+		}
+
+        // 绑定参数到预处理语句
+        MYSQL_BIND bind[5] = {};
+        memset(bind, 0, sizeof(bind));
+
+        // 绑定姓名
+		bind[0].buffer_type = MYSQL_TYPE_STRING;
+		bind[0].buffer = (void*)name.c_str();
+        bind[0].buffer_length = static_cast<unsigned long>(name.size());
+
+        // 绑定学号
+        bind[1].buffer_type = MYSQL_TYPE_STRING;
+        bind[1].buffer = (char*)ID.c_str();
+        bind[1].buffer_length = static_cast<unsigned long>(ID.size());
+
+        // 绑定专业
+        bind[2].buffer_type = MYSQL_TYPE_STRING;
+        bind[2].buffer = (char*)major.c_str();
+        bind[1].buffer_length = static_cast<unsigned long>(major.size());
+
+        // 绑定年级
+        bind[3].buffer_type = MYSQL_TYPE_STRING;
+        bind[3].buffer = (char*)grade.c_str();
+        bind[3].buffer_length = static_cast<unsigned long>(grade.size());
+
+        // 绑定学院
+        bind[4].buffer_type = MYSQL_TYPE_STRING;
+        bind[4].buffer = (char*)college.c_str();
+        bind[4].buffer_length = static_cast<unsigned long>(college.size());
+
+		if (mysql_stmt_bind_param(stmt, bind) || mysql_stmt_execute(stmt)) {
+			std::cerr << "Error: Failed to execute statement: " << mysql_error(conn) << std::endl;
+			mysql_stmt_close(stmt);
+			return false;
+		}
+
+		mysql_stmt_close(stmt);
+		return true; // 返回成功
+    }
+//--------------↑↑↑↑↑↑↑↑↑↑↑↑-----------------
 private:
     std::mutex db_mutex; // 用于同步数据库访问的互斥锁
     MYSQL*  conn;
