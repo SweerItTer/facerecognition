@@ -3,9 +3,10 @@
 #pragma execution_character_set("UTF-8")
 #define MYLOG qDebug() << "[" << __FILE__ << ":" << __LINE__ << "]"
 
-Login::Login(QWidget *parent) 
+Login::Login(QWidget *parent,FaceDatabase *database) 
     : QWidget(parent)
     , ui(new Ui::Login)
+    , database_(database)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     ui->setupUi(this);
@@ -60,17 +61,35 @@ void Login::InitStyle()
     ui->but_off->setIconSize(QSize(30, 30)); // 设置图标的大小
 
     // 主界面样式
-    ui->widget_2->setStyleSheet(QString("QLineEdit{"        //输入框样式
-                                        "min-height: 35px;"
-                                        "background-color: rgba(255, 255, 255, 0.8);"
-                                        "border-radius:10px;"
-                                        "border-style:solid;"
-                                        "border-width:1px;"
-                                        "border-color:rgb(190, 190, 190);"
-                                        "font-size:18px;"
-                                        "color: rgb(0, 0, 0);"
-                                        "}"
-                                        "QPushButton{"    //按钮样式
+    // 输入框
+    QString QLineEditStyle =QString("QLineEdit{"        
+                                    "min-height: 35px;"
+                                    "background-color: rgba(255, 255, 255, 0.8);"
+                                    "border-radius:10px;"
+                                    "border-style:solid;"
+                                    "border-width:1px;"
+                                    "border-color:rgb(190, 190, 190);"
+                                    "font-size:18px;"
+                                    "color: rgb(0, 0, 0);"
+                                    "}");
+    ui->le_loginID->setStyleSheet(QLineEditStyle);
+    ui->le_loginPW->setStyleSheet(QLineEditStyle);
+    ui->le_registerID->setStyleSheet(QLineEditStyle);
+    ui->le_registerPW->setStyleSheet(QLineEditStyle);
+
+    ui->le_loginID->setPlaceholderText(tr("Enter account"));
+    ui->le_loginPW->setPlaceholderText(tr("Enter password"));
+    ui->le_registerID->setPlaceholderText(tr("Enter account"));
+    ui->le_registerPW->setPlaceholderText(tr("Enter password"));
+
+    ui->le_loginID->setAlignment(Qt::AlignCenter); // 居中显示
+    ui->le_loginPW->setAlignment(Qt::AlignCenter); // 居中显示
+    ui->le_loginPW->setEchoMode(QLineEdit::Password); //密码输入模式
+    ui->le_registerID->setAlignment(Qt::AlignCenter); // 居中显示
+    ui->le_registerPW->setAlignment(Qt::AlignCenter); // 居中显示
+    
+    // 登录按钮
+    QString QPushButtonStyle = QString( "QPushButton{"    //按钮样式
                                         "min-height: 35px;"
                                         "background-color: rgb(82, 85, 193);"
                                         "border-radius:10px;"
@@ -88,21 +107,23 @@ void Login::InitStyle()
                                         "QPushButton:disabled{"
                                         "background-color: rgba(82, 85, 193, 0.5);"
                                         "color: rgba(255, 255, 255, 0.5);"
-                                        "}"));
-    // 输入框
-    ui->le_ID->setPlaceholderText(tr("Enter account"));
-    ui->le_ID->setAlignment(Qt::AlignCenter); // 居中显示
+                                        "}");
+    ui->but_login->setStyleSheet(QPushButtonStyle);
+    ui->but_register->setStyleSheet(QPushButtonStyle);
 
-    ui->le_password->setPlaceholderText(tr("Enter password"));
-    ui->le_password->setAlignment(Qt::AlignCenter); // 居中显示
-    ui->le_password->setEchoMode(QLineEdit::Password); //密码输入模式
-
-    ui->but_register->setStyleSheet(QString("QPushButton{"
+    // 界面切换按钮
+    ui->but_toRegister->setStyleSheet(QString("QPushButton{"
                                             "background-color: rgba(0, 0, 0, 0);"
                                             "border-style:none;"
                                             "font-size:18px;"
                                             "color: rgb(0, 102, 204);"
                                             "}" ));
+    ui->but_toLogin->setStyleSheet(QString("QPushButton{"
+                                            "background-color: rgba(0, 0, 0, 0);"
+                                            "border-style:none;"
+                                            "font-size:18px;"
+                                            "color: rgb(0, 102, 204);"
+                                            "}" ));                                       
 }
 
 // 重绘窗口
@@ -159,3 +180,68 @@ void Login::on_but_off_clicked()
     Login::close();
 }
 
+// 登录
+void Login::on_but_login_clicked()
+{
+    std::string account = ui->le_loginID->text().toStdString();
+    std::string password = ui->le_loginPW->text().toStdString();
+    if(account.empty() || password.empty()){   
+        MYLOG << "account or password cannot be empty!";
+        QMessageBox::warning(this, tr("Warning"), tr("Account or password cannot be empty!"));
+        return;
+    }
+    if(database_->checkUserAccount(account) == true){
+        MYLOG << "Account does not exist!";
+        QMessageBox::warning(this, tr("Warning"), tr("Account does not exist!"));
+        return;
+    }
+    if(database_->checkUserPassword(account, password) == false){
+        MYLOG << "Login failed!";
+        QMessageBox::information(this, tr("Warning"), tr("Login failed!"));
+        return;
+    }else{
+        MYLOG << "Login successful!";
+        QMessageBox::information(this, tr("Information"), tr("Login successful!"));
+        emit loginSignal(account);
+        MYLOG << "account";
+        on_but_off_clicked();
+    }
+}
+// 注册
+void Login::on_but_toRegister_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(1);
+}
+
+// 注册账号
+void Login::on_but_register_clicked()
+{
+    std::string account = ui->le_registerID->text().toStdString();
+    std::string password = ui->le_registerPW->text().toStdString();
+    if(account.empty() || password.empty()){   
+        MYLOG << "account or password cannot be empty!";
+        QMessageBox::warning(this, tr("Warning"), tr("Account or password cannot be empty!"));
+        return;
+    }
+    if(database_->checkUserAccount(account) == false){
+        MYLOG << "Account already exists!";
+        QMessageBox::warning(this, tr("Warning"), tr("Account already exists!"));
+        return;
+    }
+    int ret = database_->insertUserAccount(account, password);
+    if(ret != 0){
+        MYLOG << "Registration successful!";
+        QMessageBox::information(this, tr("Information"), tr("Registration successful!"));
+        ui->stackedWidget->setCurrentIndex(0);
+    }else{
+        MYLOG << "Registration failed!";
+        QMessageBox::warning(this, tr("Warning"), tr("Registration failed!"));
+    }
+    ui->stackedWidget->setCurrentIndex(0);
+}
+
+// 去登录
+void Login::on_but_toLogin_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(0);
+}

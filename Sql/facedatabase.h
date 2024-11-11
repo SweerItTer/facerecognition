@@ -149,7 +149,7 @@ public:
     }
 
 //---------------HHL-------------
-// 插入学生信息到数据库
+    // 插入学生信息到数据库 
     bool insertIDinformation(const std::string& name, const std::string& ID,
                              const std::string& major, const std::string& grade, const std::string& college) 
     {
@@ -209,6 +209,198 @@ public:
 		mysql_stmt_close(stmt);
 		return true; // 返回成功
     }
+    
+    // 插入用户账号信息到数据库
+    bool insertUserAccount(const std::string& ID, const std::string& password)
+    {
+        std::string query = "INSERT INTO UserAccount"
+                            "(ID, password) "
+                            "VALUES (?, ?) "
+                            "ON DUPLICATE KEY UPDATE "
+                            "ID = VALUES(ID),"
+                            "password = VALUES(password) ";
+
+		// 创建并执行 SQL 语句
+		MYSQL_STMT* stmt = mysql_stmt_init(conn);
+		if (!stmt || mysql_stmt_prepare(stmt, query.c_str(), static_cast<unsigned long>(query.size()))) {
+			std::cerr << "Error: Failed to prepare statement: " << mysql_error(conn) << std::endl;
+			return false;
+		}
+
+        // 绑定参数到预处理语句
+        MYSQL_BIND bind[2] = {};
+        memset(bind, 0, sizeof(bind));
+
+        // 绑定姓名
+		bind[0].buffer_type = MYSQL_TYPE_STRING;
+		bind[0].buffer = (void*)ID.c_str();
+        bind[0].buffer_length = static_cast<unsigned long>(ID.size());
+
+        // 绑定学号
+        bind[1].buffer_type = MYSQL_TYPE_STRING;
+        bind[1].buffer = (char*)password.c_str();
+        bind[1].buffer_length = static_cast<unsigned long>(password.size());
+
+        if (mysql_stmt_bind_param(stmt, bind)) {
+            std::cerr << "Error: Failed to bind parameters: " << mysql_error(conn) << std::endl;
+            mysql_stmt_close(stmt);
+            return false;
+        }
+
+        if (mysql_stmt_execute(stmt)) {
+            std::cerr << "Error: Failed to execute statement: " << mysql_error(conn) << std::endl;
+            mysql_stmt_close(stmt);
+            return false;
+        }
+
+		mysql_stmt_close(stmt);
+		return true; // 返回成功
+    }
+
+    // 检查用户账号是否重复
+    bool checkUserAccount(const std::string& ID)
+    {
+        std::string query = "SELECT 1 FROM UserAccount WHERE ID = ? LIMIT 1";
+
+        // 创建并执行 SQL 语句
+        MYSQL_STMT* stmt = mysql_stmt_init(conn);
+        if (!stmt || mysql_stmt_prepare(stmt, query.c_str(), static_cast<unsigned long>(query.size()))) {
+            std::cerr << "Error: Failed to prepare statement: " << mysql_error(conn) << std::endl;
+            return false;
+        }
+
+        // 绑定参数到预处理语句
+        MYSQL_BIND bind[1] = {};
+        memset(bind, 0, sizeof(bind));
+
+        // 绑定账号
+        bind[0].buffer_type = MYSQL_TYPE_STRING;
+        bind[0].buffer = (void*)ID.c_str();
+        bind[0].buffer_length = static_cast<unsigned long>(ID.size());
+
+        if (mysql_stmt_bind_param(stmt, bind)) {
+            std::cerr << "Error: Failed to bind parameters: " << mysql_error(conn) << std::endl;
+            mysql_stmt_close(stmt);
+            return false;
+        }
+
+        if (mysql_stmt_execute(stmt)) {
+            std::cerr << "Error: Failed to execute statement: " << mysql_error(conn) << std::endl;
+            mysql_stmt_close(stmt);
+            return false;
+        }
+
+        // 绑定结果集
+        MYSQL_BIND result_bind[1] = {};
+        memset(result_bind, 0, sizeof(result_bind));
+
+        // 绑定一个临时变量来接收结果
+        int exists = 0;
+        result_bind[0].buffer_type = MYSQL_TYPE_LONG;
+        result_bind[0].buffer = &exists;
+        result_bind[0].buffer_length = sizeof(exists);
+
+        if (mysql_stmt_bind_result(stmt, result_bind)) {
+            std::cerr << "Error: Failed to bind result: " << mysql_error(conn) << std::endl;
+            mysql_stmt_close(stmt);
+            return false;
+        }
+
+        // 存储查询结果
+        if (mysql_stmt_store_result(stmt)) {
+            std::cerr << "Error: Failed to store result: " << mysql_error(conn) << std::endl;
+            mysql_stmt_close(stmt);
+            return false;
+        }
+
+        // 检查是否有结果
+        bool account_exists = false;
+        if (mysql_stmt_fetch(stmt) == 0) { // 0 表示成功
+            account_exists = (exists == 1);
+        }
+
+        // 清理资源
+        mysql_stmt_free_result(stmt);
+        mysql_stmt_close(stmt);
+
+        return !account_exists; // 如果账号存在，则返回false，表示不能注册
+    }
+
+    // 检查用户账号密码是否正确
+    bool checkUserPassword(const std::string& ID, const std::string& password)
+    {
+        std::string query = "SELECT 1 FROM UserAccount WHERE ID = ? AND password = ? LIMIT 1";
+
+        // 创建并执行 SQL 语句
+        MYSQL_STMT* stmt = mysql_stmt_init(conn);
+        if (!stmt || mysql_stmt_prepare(stmt, query.c_str(), static_cast<unsigned long>(query.size()))) {
+            std::cerr << "Error: Failed to prepare statement: " << mysql_error(conn) << std::endl;
+            return false;
+        }
+
+        // 绑定参数到预处理语句
+        MYSQL_BIND bind[2] = {};
+        memset(bind, 0, sizeof(bind));
+
+        // 绑定账号
+        bind[0].buffer_type = MYSQL_TYPE_STRING;
+        bind[0].buffer = (void*)ID.c_str();
+        bind[0].buffer_length = static_cast<unsigned long>(ID.size());
+
+        // 绑定密码
+        bind[1].buffer_type = MYSQL_TYPE_STRING;
+        bind[1].buffer = (char*)password.c_str();
+        bind[1].buffer_length = static_cast<unsigned long>(password.size());
+
+        if (mysql_stmt_bind_param(stmt, bind)) {
+            std::cerr << "Error: Failed to bind parameters: " << mysql_error(conn) << std::endl;
+            mysql_stmt_close(stmt);
+            return false;
+        }
+
+        if (mysql_stmt_execute(stmt)) {
+            std::cerr << "Error: Failed to execute statement: " << mysql_error(conn) << std::endl;
+            mysql_stmt_close(stmt);
+            return false;
+        }
+
+        // 绑定结果集
+        MYSQL_BIND result_bind[1] = {};
+        memset(result_bind, 0, sizeof(result_bind));
+
+        // 绑定一个临时变量来接收结果
+        int exists = 0;
+        result_bind[0].buffer_type = MYSQL_TYPE_LONG;
+        result_bind[0].buffer = &exists;
+        result_bind[0].buffer_length = sizeof(exists);
+
+        if (mysql_stmt_bind_result(stmt, result_bind)) {
+            std::cerr << "Error: Failed to bind result: " << mysql_error(conn) << std::endl;
+            mysql_stmt_close(stmt);
+            return false;
+        }
+
+        // 存储查询结果
+        if (mysql_stmt_store_result(stmt)) {
+            std::cerr << "Error: Failed to store result: " << mysql_error(conn) << std::endl;
+            mysql_stmt_close(stmt);
+            return false;
+        }
+
+        // 检查是否有结果
+        bool password_correct = false;
+        if (mysql_stmt_fetch(stmt) == 0) { // 0 表示成功
+            password_correct = (exists == 1);
+        }
+
+        // 清理资源
+        mysql_stmt_free_result(stmt);
+        mysql_stmt_close(stmt);
+
+        return password_correct; // 返回密码是否正确
+    }
+
+
 //--------------↑↑↑↑↑↑↑↑↑↑↑↑-----------------
 private:
     std::mutex db_mutex; // 用于同步数据库访问的互斥锁

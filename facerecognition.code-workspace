@@ -109,7 +109,8 @@
 			"filesystem": "cpp",
 			"qwidget": "cpp",
 			"coroutine": "cpp",
-			"resumable": "cpp"
+			"resumable": "cpp",
+			"qtimer": "cpp"
 		}
 	}
 }

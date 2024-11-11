@@ -69,6 +69,8 @@ private slots:
     void on_but_camera_clicked();
     void on_but_data_clicked();
     void on_but_set_clicked();
+    void on_login_signal(std::string account);// 接收登录信号 signals:void loginSignal(std::string account);
+    
     // page0 首页统计图
     void setBarChart();// 柱状图
     void setBarChart_2();
@@ -85,7 +87,8 @@ private slots:
     void on_but_facenetonnx_clicked();
 	void on_but_storagefile_clicked();
     void on_but_enterface_clicked();
-    
+
+
 
 private:
     bool m_leftMousePressed = false; //鼠标是否点中标题栏，是true，否false

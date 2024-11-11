@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
     // 读取上一次打开的路径
     facenetLastPath = loadLastPath("/facenet_path.txt");
     yoloLastPath = loadLastPath("/yolo_path.txt");
@@ -28,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
 	callback = new Script(this, yolo, facenet, &database);
     conf = new Configure();
     // 初始化
+    StyleSheetInit(); // 样式初始化
     // page0 首页统计图
     setBarChart();
     setBarChart_2();
@@ -35,9 +37,11 @@ MainWindow::MainWindow(QWidget *parent)
     setPieChart();
     setLineChart();
     setSplineChart();
-    // page2 数据库
+    
+    
 
-    StyleSheetInit(); // 样式初始化
+
+    
 }
 
 MainWindow::~MainWindow()
@@ -518,7 +522,7 @@ void MainWindow::on_but_user_clicked()
 {
     if(ui->but_user->text() == "点击登录")
     {
-        ui_login = new Login(nullptr);
+        ui_login = new Login(nullptr,database);
         ui_login->setCallback([this]() {
             if (callback) {
                 callback->resume();
@@ -526,8 +530,20 @@ void MainWindow::on_but_user_clicked()
         });
         ui_login->setWindowModality(Qt::ApplicationModal);
         ui_login->show();
-        
+        connect(ui_login, &Login::loginSignal, this, &MainWindow::on_login_signal);// 登录信号
+    }else{
+        // 打开用户界面
+        ui->stackedWidget->setCurrentIndex(5);
     }
+    
+}
+
+void MainWindow::on_login_signal(std::string account)
+{
+    MYLOG << "account";
+    MYLOG << account.c_str();
+    // 登录成功，显示用户名
+    ui->but_user->setText(QString::fromStdString(account));
 }
 
 // 主界面
