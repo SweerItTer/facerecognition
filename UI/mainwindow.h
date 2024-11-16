@@ -74,7 +74,7 @@ private slots:
     // page0 首页统计图
     void setBarChart();// 柱状图
     void setBarChart_2();
-    void setProgressBar();// 原型进度条
+    void setProgressBar(double percentage);// 原型进度条
     void setPieChart();// 饼状图
     void setLineChart();// 折线图
     void setSplineChart();// 曲线图

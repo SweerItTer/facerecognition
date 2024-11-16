@@ -33,7 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
     // page0 首页统计图
     setBarChart();
     setBarChart_2();
-    setProgressBar();
+    double percentage = 0.7;
+    setProgressBar(percentage);
     setPieChart();
     setLineChart();
     setSplineChart();
@@ -550,6 +551,12 @@ void MainWindow::on_login_signal(std::string account)
 void MainWindow::on_but_home_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
+    if(ui->lb_camera->pixmap() == nullptr || ui->lb_camera->pixmap()->isNull())
+    {
+        // 获取QLabel上的QPixmap
+        // QPixmap pixmap = ui->lb_camera->pixmap();
+        // ui->lb_cameramin->setPixmap(ui->lb_camera->pixmap());
+    }
 }
 
 // 摄像机
@@ -583,7 +590,8 @@ void MainWindow::on_but_set_clicked()
  * @param int min        范围（最小值）
  * @param int max        范围（最大值）
  * @return QVector<QPointF> data       随机数的点集
- *
+ * 
+ * 测试用
  * x值默认int y值默认double
  * x值默认间隔1 y为随机数
  */
@@ -795,12 +803,18 @@ void MainWindow::setBarChart_2()
     customPlot->replot();
 }
 
-// 圆形加载条
-void MainWindow::setProgressBar()
+/**
+ * @brief 圆形进度条
+ * @param double percentage    百分比 eg：0.05
+ * @return 无
+ *
+ * 设置首页的圆形进度条，输入两位小数点的数
+ */
+void MainWindow::setProgressBar(double percentage)
 {
-    double data_1 = QRandomGenerator::global()->bounded(0,50);
-    double data_2 = QRandomGenerator::global()->bounded(0,50);
-    double percentage = (data_1/(data_1+data_2));//百分比
+    // double data_1 = QRandomGenerator::global()->bounded(0,50);
+    // double data_2 = QRandomGenerator::global()->bounded(0,50);
+    // double percentage = (data_1/(data_1+data_2));//百分比
 
     int side = qMin(ui->lb_roundprogessbar->width(),ui->lb_roundprogessbar->height());
     QImage background(side,side, QImage::Format_ARGB32_Premultiplied);
@@ -834,13 +848,13 @@ void MainWindow::setProgressBar()
     QPoint startPoint (side/2-r,side/2+radius-r);// 开始左上点
     QRect startRect(startPoint,QSize(r*2,r*2));// 开始的矩形框
 
-    const double Angle =270 - percentage * 360; // 角度
-    const double pi = 3.14159265358979323846; // 圆周率π
-    double AngleInRadians = Angle * (pi / 180.0);
-    double x = cos(AngleInRadians)*radius;
-    double y = sin(AngleInRadians)*radius;
-    QPoint endPoint = QPoint(side/2+x-r,side/2-y-r);
-    QRect endRect(endPoint,QSize(r*2,r*2-1));
+    const double Angle = 270 - percentage * 360; // 角度
+    // const double pi = 3.14159265358979323846; // 圆周率π
+    // double AngleInRadians = Angle * (pi / 180.0);
+    // double x = cos(AngleInRadians)*radius;
+    // double y = sin(AngleInRadians)*radius;
+    // QPoint endPoint = QPoint(side/2+x-r,side/2-y-r);
+    // QRect endRect(endPoint,QSize(r*2-1,r*2-1));
     qreal endAngle = startAngle - Angle;// 结束角度
 
     painter.setPen(QPen(QColor(0, 0, 0,0),1));
@@ -851,9 +865,9 @@ void MainWindow::setProgressBar()
 
     QPainterPath path;
     path.moveTo(startPoint.x()+r,startPoint.y()+r*2);
-    path.arcTo(startRect,270,180);// 开始的半圆
+    // path.arcTo(startRect,270,180);// 开始的半圆
     path.arcTo(rectmiddle,startAngle, -endAngle); // 内侧圆弧
-    path.arcTo(endRect,Angle+180,180);// 结束的半圆
+    // path.arcTo(endRect,Angle+180,180);// 结束的半圆
     path.arcTo(rectbackground,Angle, 180+90-Angle); // 外侧圆弧
     path.closeSubpath(); // 封闭路径
     painter.drawPath(path);
@@ -1187,7 +1201,8 @@ void MainWindow::on_pushButton_clicked()
 {
     setBarChart();
     setBarChart_2();
-    setProgressBar();
+    double percentage = 0.7;
+    setProgressBar(percentage);
     setPieChart();
     setLineChart();
     setSplineChart();
