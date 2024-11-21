@@ -313,6 +313,11 @@ void enterface::on_but_data_clicked()
 {
     page = 0;
     ui->stackedWidget->setCurrentIndex(page);
+    if(capture->isOpened()){
+        capture->release();
+        timer->stop();
+        ui->lb_camera->clear();
+    }
 }
 
 void enterface::on_but_face_clicked()
@@ -325,12 +330,22 @@ void enterface::on_but_verify_clicked()
 {
     page = 2;
     ui->stackedWidget->setCurrentIndex(page);
+    if(capture->isOpened()){
+        capture->release();
+        timer->stop();
+        ui->lb_camera->clear();
+    }
 }
 
 void enterface::on_but_finish_clicked()
 {
     page = 3;
     ui->stackedWidget->setCurrentIndex(page);
+    if(capture->isOpened()){
+        capture->release();
+        timer->stop();
+        ui->lb_camera->clear();
+    }
 }
 
 void enterface::pagechangebutton()
@@ -509,6 +524,13 @@ void enterface::on_but_next_clicked()
 
     page++;
     ui->stackedWidget->setCurrentIndex(page);
+    if(page != 1){// 当切换页面时不处于摄像头页面,则关闭摄像头
+        if(capture->isOpened()){
+            capture->release();
+            timer->stop();
+            ui->lb_camera->clear();
+        }
+    }
 }
 
 // ------------------------
@@ -622,43 +644,7 @@ void enterface::on_but_save_clicked()
 
     // 更新下一个标签位置
     label_index = (label_index + 1) % photos_l.size();
-    /*
-	if(ui->lb_photo1->pixmap() == nullptr || ui->lb_photo1->pixmap()->isNull())
-    {
-        mat_1 = mat_face.clone();
-        cv::cvtColor(mat_1, mat_1, cv::COLOR_BGR2RGB);
-        cv::flip(mat_1, mat_1, 1);
-        QImage img = QImage(mat_1.data, mat_1.cols, mat_1.rows, mat_1.step, QImage::Format_RGB888);
-        QPixmap pixmap = QPixmap::fromImage(img);
-        pixmap = pixmap.scaled(ui->lb_photo1->size(),Qt::KeepAspectRatio);
-        ui->lb_photo1->setPixmap(pixmap);
-    }
-    else if(ui->lb_photo2->pixmap() == nullptr || ui->lb_photo2->pixmap()->isNull())
-    {
-        mat_2 = mat_face.clone();
-        cv::cvtColor(mat_2, mat_2, cv::COLOR_BGR2RGB);
-        cv::flip(mat_2, mat_2, 1);
-        QImage img = QImage(mat_2.data, mat_2.cols, mat_2.rows, mat_2.step, QImage::Format_RGB888);
-        QPixmap pixmap = QPixmap::fromImage(img);
-        pixmap = pixmap.scaled(ui->lb_photo2->size(),Qt::KeepAspectRatio);
-        ui->lb_photo2->setPixmap(pixmap);
-    }
-    else if(ui->lb_photo3->pixmap() == nullptr || ui->lb_photo3->pixmap()->isNull())
-    {
-        mat_3 = mat_face.clone();
-        cv::cvtColor(mat_3, mat_3, cv::COLOR_BGR2RGB);
-        cv::flip(mat_3, mat_3, 1);
-        QImage img = QImage(mat_3.data, mat_3.cols, mat_3.rows, mat_3.step, QImage::Format_RGB888);
-        QPixmap pixmap = QPixmap::fromImage(img);
-        pixmap = pixmap.scaled(ui->lb_photo3->size(),Qt::KeepAspectRatio);
-        ui->lb_photo3->setPixmap(pixmap);
-    }
-    else
-    {
-        QMessageBox::warning(this, tr("Save images excessively"),
-         tr("The image has reached the maximum limit \n please delete the image first"));
-    }
-    */
+
     but_del_style();
     timer->start(100);
 }

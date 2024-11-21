@@ -21,23 +21,12 @@ Script::~Script()
 	}
 	delete session;
 	std::cout << "player close." << std::endl;
-	if (yolo) {
-    	delete yolo;
-    	yolo = nullptr; // 将指针设为nullptr
-	}
 
-	if(facenet){
-		delete facenet;
-		facenet = nullptr;
-	}
 	std::cout << "deleted yolo and mainwindow." << std::endl;
 	delete imageProcessor;
 
-	delete mw;
-	if (*database_ptr) {
-        delete *database_ptr;
-        *database_ptr = nullptr;
-    }
+	delete *database_ptr;
+	*database_ptr = nullptr;
 
 }
 
