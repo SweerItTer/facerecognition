@@ -30,12 +30,12 @@ private slots:
 
 private:
     MYSQL *conn;  // MySQL 连接对象
-    QTableWidget *attendanceTable;
-    QTableWidget *faceFeaturesTable;
-    QTableWidget *idInformationTable;
-    QPushButton *refreshButton; // 刷新按钮
+    QTableWidget *attendanceTable = nullptr;
+    QTableWidget *faceFeaturesTable = nullptr;
+    QTableWidget *idInformationTable = nullptr;
+    QPushButton *refreshButton = nullptr; // 刷新按钮
 
-    DataDBInfo *dbInfo;
+    DataDBInfo *dbInfo = nullptr;
 
     bool ConncetStatus = false;
 
