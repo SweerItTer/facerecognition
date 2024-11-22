@@ -119,8 +119,10 @@ public:
             result.pop();  // 弹出顶部元素
             
             // 第一重判断：L2距离阈值
-            if(item.first > 0.8f) continue;
-            
+            if(item.first > 1.1f) {
+                // std::cout << "item.first " << item.first;
+                continue;
+            }
             // 获取原始ID和向量索引
             size_t originalId = item.second / 10;  // 现在除以10
             int vectorIndex = item.second % 10;    // 现在对10取余
