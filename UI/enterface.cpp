@@ -218,17 +218,6 @@ void enterface::InitStyle()
     ui->but_save->setStyleSheet(setPage_butStyle);
 
     but_del_style();
-    // QIcon delIcon; // 删除按钮图标
-    // delIcon.addFile(":/del_on.png", QSize(), QIcon::Disabled); // 禁用状态
-    // delIcon.addFile(":/del.png", QSize(), QIcon::Normal); // 正常状态
-    // ui->but_delet1->setIcon(delIcon);
-    // ui->but_delet1->setIconSize(QSize(30, 30)); // 设置图标的大小
-    // ui->but_delet2->setIcon(delIcon);
-    // ui->but_delet2->setIconSize(QSize(30, 30)); // 设置图标的大小
-    // ui->but_delet3->setIcon(delIcon);
-    // ui->but_delet3->setIconSize(QSize(30, 30)); // 设置图标的大小
-
-
 
     // page3 验证人脸
 

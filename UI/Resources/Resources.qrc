@@ -13,6 +13,7 @@
         <file>set.png</file>
         <file>set_on.png</file>
         <file>user.png</file>
+        <file>user1.png</file>
         <file>lb_camaretest.png</file>
         <file>MaoKenWangXingYuan/MaoKenWangXingYuan-2.ttf</file>
         <file>comboBox_downarrow.png</file>
@@ -25,5 +26,6 @@
         <file>rail.png</file>
         <file>rail_on.png</file>
         <file>app.ico</file>
+        <file>sed.png</file>
     </qresource>
 </RCC>

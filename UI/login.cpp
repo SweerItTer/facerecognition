@@ -30,7 +30,7 @@ void Login::InitStyle()
                                  "border-radius: 10px;"
                                  "border-style:solid;"
                                  "border-width:2px;"
-                                 "border-color:rgba(0, 0, 0, 1);"
+                                 "border-color:rgba(0, 0, 0, 0);"
                                  "}"));
     // 标题栏
     ui->widget->setStyleSheet(QString("QWidget{"
@@ -58,9 +58,49 @@ void Login::InitStyle()
     QIcon offIcon; // 关闭按钮图标
     offIcon.addFile(":/off.png", QSize(), QIcon::Normal);     // 正常状态
     ui->but_off->setIcon(offIcon);
-    ui->but_off->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_off->setIconSize(QSize(20, 20)); // 设置图标的大小
 
     // 主界面样式
+    // 主体框
+    ui->widget_2->setStyleSheet(QString("QWidget{"
+                                        "background-color: rgb(236, 237, 255);"
+                                        "border-top-left-radius:0px;"
+                                        "border-top-right-radius:0px;"
+                                        "border-bottom-right-radius:10px;"
+                                        "border-bottom-left-radius:10px;"
+                                        "border-style:solid;"
+                                        "border-width:1px;"
+                                        "border-color:rgb(82, 85, 193);"
+                                        "}"));
+    ui->page_2->setStyleSheet(QString("QWidget{"
+                                        "background-color: rgba(236, 237, 255, 0);"
+                                        "border-radius:0px;"
+                                        "border-style:none;"
+                                        "border-width:0px;"
+                                        "border-color:rgba(82, 85, 193, 0);"
+                                        "}"));
+    // 头像
+    ui->lb_head->setStyleSheet(QString("QLabel{"
+                                    "background-color: rgba(0, 0, 0, 0);" 
+                                    "border-radius:0px;"
+                                    "border-style:none;" 
+                                    "border-width:0px;"
+                                    "border-color:rgba(0, 0, 0, 0);"
+                                    "color: rgba(0, 0, 0, 1);"
+                                    "}"));
+    QPixmap headPix = QPixmap(":/user1.png");
+    headPix = headPix.scaled(ui->lb_head->size(), Qt::KeepAspectRatio,Qt::SmoothTransformation);
+    ui->lb_head->setPixmap(headPix);
+    // 欢迎注册
+    ui->lb_welcome->setStyleSheet(QString("QLabel{"
+                                        "background-color: rgba(0, 0, 0, 0);"
+                                        "border-radius:0px;"
+                                        "border-style:none;"
+                                        "border-width:0px;"
+                                        "border-color:rgba(0, 0, 0, 0);"
+                                        "font-size:40px;"
+                                        "color: rgb(82, 85, 193);"
+                                        "}"));
     // 输入框
     QString QLineEditStyle =QString("QLineEdit{"        
                                     "min-height: 35px;"
