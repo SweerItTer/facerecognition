@@ -63,6 +63,7 @@ private:
 	void processNextFrame();
 
 	bool isinite = false;
+	bool isPause = false;
 	std::string rtsp_url;
 
 	QQueue<cv::Mat> frameQueue;

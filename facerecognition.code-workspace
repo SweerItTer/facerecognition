@@ -3,9 +3,6 @@
 		{
 			"name": "facerecognition",
 			"path": "."
-		},
-		{
-			"path": "../build"
 		}
 	],
 	"settings": {

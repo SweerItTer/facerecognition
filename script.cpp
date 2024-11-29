@@ -206,6 +206,7 @@ int Script::play() {
 void Script::pasue()
 {
 	if (p_thread) {
+		isPause = true;
 		p_thread->Pause(1);
 	}
 }
@@ -213,6 +214,7 @@ void Script::pasue()
 void Script::resume()
 {	
 	if (p_thread) {
+		isPause = false;
 		p_thread->Pause(0);
 	}
 }
@@ -225,6 +227,11 @@ void Script::prossPixSignal(QPixmap image){
 }
 
 void Script::prossCVSignal(cv::Mat image) {
+	if (isPause) 
+	{
+		image.release();
+		return; // 若处于暂停状态,则不处理图像
+	}
 	QMutexLocker locker(&queueMutex);
 	if (frameQueue.size() < 30) { // 限制队列大小，防止内存溢出
 		frameQueue.enqueue(std::move(image));

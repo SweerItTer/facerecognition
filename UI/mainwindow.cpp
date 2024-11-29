@@ -1207,12 +1207,113 @@ void MainWindow::on_pushButton_clicked()
     setLineChart();
     setSplineChart();
 }
+// page1 摄像头
+// 停止视频播放
+void MainWindow::on_but_stop_clicked()
+{
+    if(ui->but_stop->text() == "ll")
+    {   
+        callback->pasue();
+        ui->but_stop->setText("l>");
+    }else if (ui->but_stop->text() == "l>")
+    {
+        callback->resume();
+        ui->but_stop->setText("ll");
+    }
+}
 
+// 保存图片
+void MainWindow::on_but_save_clicked()
+{
+    QString failpath = ui->le_message->text();
+    QDir dir;
+    if(failpath == "默认路径"){
+        failpath = QDir::currentPath() + "/save_images";
+    }else{
+        failpath = failpath + "/save_images";
+    }dir.mkpath(failpath);
+
+    // 获取当前时间
+    QDateTime currentDateTime = QDateTime::currentDateTime();
+    QString time = currentDateTime.toString("yyyyMMddhhmmss");
+    // 保存图片
+    QString fileName = failpath + QDir::separator() + time + ".jpg";
+    const QPixmap *pixmapPtr = ui->lb_camera->pixmap();
+    if (pixmapPtr) {
+        QPixmap pixmap = *pixmapPtr;
+        pixmap.save(fileName, "JPG");
+    } else {
+        QMessageBox::warning(this, tr("Save Image"), tr("No image to save."));
+    }
+    readSaveImages();
+}
+
+// 打开图片文件夹
+void MainWindow::on_but_open_clicked()
+{
+    QString failpath = ui->le_message->text();
+    QDir dir;
+    if(failpath == "默认路径"){
+        failpath = QDir::currentPath() + "/save_images";
+    }else{
+        failpath = failpath + "/save_images";
+    }dir.mkpath(failpath);
+    // 打开系统资源管理器并导航到指定的路径
+    if (!QFileInfo::exists(failpath)) {
+        QMessageBox::warning(this, tr("Error"), tr("The specified path does not exist."));
+        return;
+    }
+    QUrl url = QUrl::fromLocalFile(failpath);
+    bool ret = QDesktopServices::openUrl(url);
+    if (!ret) {
+        MYLOG << "Unable to open the system explorer.";
+    }
+}
+// 读取保存的图片放置到label上
+void MainWindow::readSaveImages()
+{
+    ui->lb_history1->clear();
+    ui->lb_history2->clear();
+    ui->lb_history3->clear();
+    ui->lb_history4->clear();
+    ui->lb_history5->clear();
+
+    QString failpath = ui->le_message->text();
+    QDir dir;
+    if(failpath == "默认路径"){
+        failpath = QDir::currentPath() + "/save_images";
+    }else{
+        failpath = failpath + "/save_images";
+    }dir.mkpath(failpath);
+
+    // 获取文件夹内所有文件的列表
+    QStringList filters;
+    filters << "*.jpg"; // 假设图片格式为jpg
+    QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files, QDir::Name);
+    for (int i = 0; i < qMin(5, fileInfoList.size()); ++i) {// 读取前5张图片
+        QFileInfo fileInfo = fileInfoList.at(i);
+        QString fileName = fileInfo.absoluteFilePath();
+        QPixmap pixmap(fileName);
+        if (!pixmap.isNull()) {
+            if(ui->lb_history1->pixmap() == nullptr){
+                ui->lb_history1->setPixmap(pixmap.scaled(ui->lb_history1->size(), Qt::KeepAspectRatio));
+            }
+            // }else if(ui->lb_history2->pixmap() == nullptr){ 
+            //     ui->lb_history2->setPixmap(pixmap.scaled(ui->lb_history2->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            // }else if(ui->lb_history3->pixmap() == nullptr){
+            //     ui->lb_history3->setPixmap(pixmap.scaled(ui->lb_history3->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            // }else if(ui->lb_history4->pixmap() == nullptr){
+            //     ui->lb_history4->setPixmap(pixmap.scaled(ui->lb_history4->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            // }else if(ui->lb_history5->pixmap() == nullptr){
+            //     ui->lb_history5->setPixmap(pixmap.scaled(ui->lb_history5->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            // }
+        }
+    }
+}
 // 录入人脸信息
 void MainWindow::on_but_enterface_clicked()
 {
     ui_enterface = new enterface(nullptr, yolo, facenet, database);
-
     ui_enterface->setCallback([this]() {
         if (callback) {
             callback->resume();
@@ -1231,7 +1332,6 @@ void MainWindow::on_but_enterface_clicked()
         ui_enterface->show();
         MYLOG << "Model loaded successfully";
     }
-
 }
 
 // ---------------- HJJ --------------- //
