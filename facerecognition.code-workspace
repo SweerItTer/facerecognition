@@ -108,6 +108,7 @@
 			"coroutine": "cpp",
 			"resumable": "cpp",
 			"qtimer": "cpp"
-		}
+		},
+		"marscode.chatLanguage": "cn"
 	}
 }

@@ -105,7 +105,7 @@ void PlayThread::run(){
 	cv::Mat mat_;
 	//QPixmap img;
 	while(!abord_){
-		// while(paused) std::cout << "pause status: " << paused << std::endl; // 等待播放
+		while(paused); // 等待播放
 		AVFrame *frame = video_frame_queue.Pop(100);//取出帧
 
 		if (frame){
@@ -117,6 +117,7 @@ void PlayThread::run(){
 		}
 		av_frame_unref(frame);
 		av_frame_free(&frame); // 使用完毕后释放frame
+		mat_.release();
 	}
 	cout << "PlayThread loop break.\n";
 

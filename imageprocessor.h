@@ -61,14 +61,15 @@ public:
         }
         */
         delete hnsw; // HNSW索引
-        delete yolo;
-        delete facenet;
-        delete database;
+        //delete yolo;
+        //delete facenet;
+        //delete database;
     }
 
-    void setImage(const cv::Mat& img) {
+    void setImage(cv::Mat img) {
         std::lock_guard<std::mutex> lock(mutex);
-        image = img; // 直接引用
+        image = img; // 直接传递图像
+        img.release();  // 释放图像内存
         cv.notify_all();
     }
 
@@ -81,7 +82,6 @@ public:
         std::lock_guard<std::mutex> lock(mutex);
         buildHNSWIndex();  // 构建HNSW索引
     }
-
 
     bool paused = false;  // 暂停标志
 
@@ -120,7 +120,6 @@ private:
         QPixmap pixmap;
 
         // 运动检测
-        cv::Mat pimg;  // 上一帧图像
         cv::Mat nimg;  // 当前帧图像
         cv::Mat grayPrev, grayNext;
 
@@ -155,9 +154,7 @@ private:
                 // throw std::runtime_error(e.what());  // 跳过当前循环
                 continue;  // 跳过当前循环
             }
-            
-
-
+       
             // 检查 flow 的维度
             if (flow.empty() || flow.channels() != 2) {
                 std::cerr << "Flow calculation failed or has incorrect number of channels!" << std::endl;
@@ -167,7 +164,7 @@ private:
             // 使用第二种重载分割 flow
             std::vector<cv::Mat> flowChannels;
             cv::split(flow, flowChannels);  // flowChannels 将会包含 flow 的各个通道
-
+            
             // 检查分割结果
             if (flowChannels.size() != 2) {
                 std::cerr << "Flow split did not produce two channels!" << std::endl;
@@ -185,9 +182,10 @@ private:
             // 计算平均运动量
             double avgMagnitude = cv::mean(magnitude)[0];
             // std::cout << "Average motion magnitude: " << avgMagnitude << std::endl;
-            
+
             // 如果运动量大于阈值，则进行人脸检测
             if (!image.empty() && callback && avgMagnitude > 0.07) {
+
                 // std::cout << "Motion detected." << std::endl;
                 std::vector<cv::Mat> result;
 
@@ -210,13 +208,26 @@ private:
                         attendanceDatabase->insertRecord(uname, "IN");// 记录用户的最早出现
                     }
                 }
+                
                 QImage img((uchar*)(result[0].data), static_cast<int>(result[0].cols), 
                                 static_cast<int>(result[0].rows), static_cast<int>(result[0].step), QImage::Format_RGB888);
                 pixmap = QPixmap::fromImage(img.rgbSwapped());
                 // 使用回调函数返回处理后的图像
                 callback(pixmap);
+                pixmap = QPixmap();
                 // 更新上一帧图像
-                grayPrev = grayNext.clone();
+                grayPrev = std::move(grayNext);
+                // 释放处理后的图像，确保内存不会被反复占用
+                image.release();
+                nimg.release();  // 当前帧图像
+                flow.release();
+                // 释放 flow 通道
+                flowX.release();
+                flowY.release();
+                // 释放 flow 矩阵
+                magnitude.release();
+                angle.release();
+                flowChannels.clear();
                 // 释放处理后的图像，确保内存不会被反复占用
                 image.release();
                 continue;
@@ -228,11 +239,25 @@ private:
 
             // 使用回调函数返回处理后的图像
             callback(pixmap);
+            pixmap = QPixmap();
             // 更新上一帧图像
-            grayPrev = grayNext.clone();
+            grayPrev = std::move(grayNext);
+            nimg.release();  // 当前帧图像
+            flow.release();
+            // 释放 flow 通道
+            flowX.release();
+            flowY.release();
+            // 释放 flow 矩阵
+            magnitude.release();
+            angle.release();
+            flowChannels.clear();
             // 释放处理后的图像，确保内存不会被反复占用
             image.release();
         }
+        image.release();
+        nimg.release();  // 当前帧图像
+        grayPrev.release();
+        grayNext.release();
     }
 
 

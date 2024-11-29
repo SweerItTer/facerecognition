@@ -26,7 +26,6 @@ Script::~Script()
 	delete imageProcessor;
 
 	delete *database_ptr;
-	*database_ptr = nullptr;
 
 }
 
@@ -125,20 +124,21 @@ int Script::loadConfig(QFile &configFile) {
 void Script::startProcessingTimer() {
 	processingTimer = new QTimer(this);
 	connect(processingTimer, &QTimer::timeout, this, &Script::processNextFrame);
-	processingTimer->start(2); // 每50ms处理一帧，可以根据需要调整
+	processingTimer->start(5); // 每50ms处理一帧，可以根据需要调整
 }
 
 void Script::processNextFrame() {
 	cv::Mat frame;
 	{// 取出帧
-		QMutexLocker locker(&queueMutex);
-		if (!frameQueue.isEmpty()) {
-			frame = frameQueue.dequeue();
-		}
+	QMutexLocker locker(&queueMutex);
+	if (!frameQueue.isEmpty()) {
+		frame = frameQueue.dequeue();
+	}
 	}
 	// 处理帧
 	if (!frame.empty()) {
 		imageProcessor->setImage(frame);
+		frame.release();
 	}
 }
 
@@ -238,12 +238,15 @@ void Script::prossCVSignal(cv::Mat image) {
 		p_thread->Pause(0);
 	} else {
 		p_thread->Pause(1);
+		image.release();
 	}
 }
 
 // 更新UI显示图像
-void Script::updateUI(const QPixmap& image) {
+void Script::updateUI(QPixmap image) {
 	QPixmap scaledPixmap = image.scaled(mw->ui->lb_camera->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	mw->ui->lb_camera->setPixmap(scaledPixmap);
+	scaledPixmap = QPixmap();
+	image = QPixmap();
 }
 

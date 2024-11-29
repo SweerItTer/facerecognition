@@ -56,7 +56,7 @@ private:
 
 	void prossPixSignal(QPixmap image);
 	void prossCVSignal(cv::Mat image);
-	void updateUI(const QPixmap& image);
+	void updateUI(QPixmap image);
 
 
 	void startProcessingTimer();
