@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    
 
     // 读取上一次打开的路径
     facenetLastPath = loadLastPath("/facenet_path.txt");
@@ -38,10 +39,11 @@ MainWindow::MainWindow(QWidget *parent)
     setPieChart();
     setLineChart();
     setSplineChart();
-    
-    
-
-
+    // page1 摄像头
+    // on_but_save_clicked();
+    //----
+    on_but_home_clicked(); 
+    ui->but_home->setChecked(true);
     
 }
 
@@ -107,7 +109,8 @@ void MainWindow::StyleSheetInit()
                                     "color: rgb(255, 255, 255);"
                                     "}"));
 
-    QButtonGroup *group = new QButtonGroup(this);
+    // QButtonGroup *group = new QButtonGroup(this);
+    QButtonGroup *group = new QButtonGroup(ui->widget);
     // group->addButton(ui->but_user, 0);
     group->addButton(ui->but_home, 0);
     group->addButton(ui->but_camera, 1);    
@@ -140,29 +143,29 @@ void MainWindow::StyleSheetInit()
                                     "}");
     
     QIcon homeIcon;
-    homeIcon.addFile(":/home.png", QSize(), QIcon::Normal);     // 正常状态
-    homeIcon.addFile(":/home_on.png", QSize(), QIcon::Active); // 按下状态
+    homeIcon.addFile(":/home.png", QSize(), QIcon::Normal, QIcon::Off);     // 正常状态
+    homeIcon.addFile(":/home_on.png", QSize(), QIcon::Normal, QIcon::On); // 按下状态
     ui->but_home->setIcon(homeIcon);
     ui->but_home->setIconSize(QSize(30, 30)); // 设置图标的大小
     ui->but_home->setStyleSheet(sidebar_butStyle);
 
     QIcon cameraIcon;
-    cameraIcon.addFile(":/camare.png", QSize(), QIcon::Normal);     // 正常状态
-    cameraIcon.addFile(":/camare_on.png", QSize(), QIcon::Active); // 按下状态
+    cameraIcon.addFile(":/camare.png", QSize(), QIcon::Normal, QIcon::Off);     // 正常状态
+    cameraIcon.addFile(":/camare_on.png", QSize(), QIcon::Normal, QIcon::On); // 按下状态
     ui->but_camera->setIcon(cameraIcon);
     ui->but_camera->setIconSize(QSize(30, 30)); // 设置图标的大小
     ui->but_camera->setStyleSheet(sidebar_butStyle);
 
     QIcon dataIcon;
-    dataIcon.addFile(":/data.png", QSize(), QIcon::Normal);     // 正常状态
-    dataIcon.addFile(":/data_on.png", QSize(), QIcon::Active); // 按下状态
+    dataIcon.addFile(":/data.png", QSize(), QIcon::Normal, QIcon::Off);     // 正常状态
+    dataIcon.addFile(":/data_on.png", QSize(), QIcon::Normal, QIcon::On); // 按下状态
     ui->but_data->setIcon(dataIcon);
     ui->but_data->setIconSize(QSize(30, 30)); // 设置图标的大小
     ui->but_data->setStyleSheet(sidebar_butStyle);
 
     QIcon setIcon;
-    setIcon.addFile(":/set.png", QSize(), QIcon::Normal);     // 正常状态
-    setIcon.addFile(":/set_on.png", QSize(), QIcon::Active); // 按下状态
+    setIcon.addFile(":/set.png", QSize(), QIcon::Normal, QIcon::Off);     // 正常状态
+    setIcon.addFile(":/set_on.png", QSize(), QIcon::Normal, QIcon::On); // 按下状态
     ui->but_set->setIcon(setIcon);
     ui->but_set->setIconSize(QSize(30, 30)); // 设置图标的大小
     ui->but_set->setStyleSheet(sidebar_butStyle);
@@ -356,6 +359,22 @@ void MainWindow::StyleSheetInit()
                                          "border-width:1px;"
                                          "border-color:rgb(255,255,255);"
                                          "}"));
+    QIcon stopIcon(":/play.png");
+    ui->but_stop->setIcon(stopIcon);
+    ui->but_stop->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_stop->setStyleSheet(QString("QPushButton{"
+                                "background-color: rgba(255, 255, 255, 0);"
+                                "border-style:none;"
+                                "border-color:rgba(190, 190, 190, 0);"
+                                "color: rgba(0, 0, 0, 0);"
+                                "}"));
+    ui->widget_3->setStyleSheet(QString("QWidget{"
+                                        "background-color: rgb(255, 255, 255);"
+                                        "border-radius:20px;"
+                                        "border-style:solid;"
+                                        "border-width:1px;"
+                                        "border-color:rgb(255,255,255);"
+                                        "}"));
     // 数据库界面
 
     // 设置界面
@@ -379,6 +398,12 @@ void MainWindow::StyleSheetInit()
     ui->but_storagefile->setStyleSheet(setPage_butStyle);
     ui->but_enterface->setStyleSheet(setPage_butStyle);
     ui->but_message->setStyleSheet(setPage_butStyle);
+
+    //---page1
+    ui->but_save->setStyleSheet(setPage_butStyle);
+    ui->but_open->setStyleSheet(setPage_butStyle);
+    ui->but_history->setStyleSheet(setPage_butStyle);
+    //---------------
 
     ui->but_sure->setStyleSheet(QString("QPushButton{"
                                 "background-color: rgb(82, 85, 193);"
@@ -554,8 +579,10 @@ void MainWindow::on_but_home_clicked()
     if(ui->lb_camera->pixmap() == nullptr || ui->lb_camera->pixmap()->isNull())
     {
         // 获取QLabel上的QPixmap
-        // QPixmap pixmap = ui->lb_camera->pixmap();
-        // ui->lb_cameramin->setPixmap(ui->lb_camera->pixmap());
+        QPixmap pixmap = *ui->lb_camera->pixmap();
+        pixmap = pixmap.scaled(ui->lb_cameramin->size(),Qt::KeepAspectRatio);
+        pixmap = getRoundRectPixmap(pixmap,pixmap.size(),20);
+        ui->lb_cameramin->setPixmap(pixmap);
     }
 }
 
@@ -1215,10 +1242,15 @@ void MainWindow::on_but_stop_clicked()
     {   
         callback->pasue();
         ui->but_stop->setText("l>");
+        QIcon stopIcon(":/play.png");
+        ui->but_stop->setIcon(stopIcon);
+
     }else if (ui->but_stop->text() == "l>")
     {
         callback->resume();
         ui->but_stop->setText("ll");
+        QIcon stopIcon(":/stop.png");
+        ui->but_stop->setIcon(stopIcon);
     }
 }
 
@@ -1269,6 +1301,20 @@ void MainWindow::on_but_open_clicked()
         MYLOG << "Unable to open the system explorer.";
     }
 }
+void MainWindow::on_but_history_clicked()
+{
+    readSaveImages();
+    if(ui->widget_3->isVisible())
+    {
+        ui->widget_3->hide();
+        ui->but_history->setText("历史记录：显示");
+    }else{
+        ui->widget_3->show();
+        ui->but_history->setText("历史记录：隐藏");
+    }
+
+}
+
 // 读取保存的图片放置到label上
 void MainWindow::readSaveImages()
 {
@@ -1277,36 +1323,51 @@ void MainWindow::readSaveImages()
     ui->lb_history3->clear();
     ui->lb_history4->clear();
     ui->lb_history5->clear();
+    ui->lb_history6->clear();
+    ui->lb_history7->clear();
+    ui->lb_history8->clear();
 
-    QString failpath = ui->le_message->text();
-    QDir dir;
-    if(failpath == "默认路径"){
-        failpath = QDir::currentPath() + "/save_images";
-    }else{
-        failpath = failpath + "/save_images";
-    }dir.mkpath(failpath);
+    // 获取用户输入的路径或使用默认路径
+    QString failpath = ui->le_message->text().trimmed();
+    if (failpath.isEmpty() || failpath == "默认路径") {
+        failpath = QDir::currentPath() + "/save_images/";
+    } else {
+        failpath += "/save_images/";
+    }
+    QDir dir(failpath);
+    dir.mkpath(failpath); // 创建文件夹，如果它不存在
 
-    // 获取文件夹内所有文件的列表
-    QStringList filters;
-    filters << "*.jpg"; // 假设图片格式为jpg
-    QFileInfoList fileInfoList = dir.entryInfoList(filters, QDir::Files, QDir::Name);
-    for (int i = 0; i < qMin(5, fileInfoList.size()); ++i) {// 读取前5张图片
-        QFileInfo fileInfo = fileInfoList.at(i);
+    // 设置目录过滤器，仅选择文件
+    dir.setFilter(QDir::Files);
+    // 设置排序方式为按名称排序
+    dir.setSorting(QDir::Name);
+
+    QFileInfoList fileInfoList = dir.entryInfoList();
+    // MYLOG << "fileInfoList size: " << fileInfoList.size();
+
+    for (int i = 0; i < qMin(8, fileInfoList.size()); ++i) {// 读取前5张图片
+        // MYLOG << "fileInfoList[" << i << "]: " << fileInfoList.at(i).absoluteFilePath();
+        QFileInfo fileInfo = fileInfoList.at(fileInfoList.size()-i-1);
         QString fileName = fileInfo.absoluteFilePath();
         QPixmap pixmap(fileName);
         if (!pixmap.isNull()) {
-            if(ui->lb_history1->pixmap() == nullptr){
-                ui->lb_history1->setPixmap(pixmap.scaled(ui->lb_history1->size(), Qt::KeepAspectRatio));
+            // 选择合适的QLabel控件
+            QLabel *label = nullptr;
+            switch (i) {
+                case 0: label = ui->lb_history1; break;
+                case 1: label = ui->lb_history2; break;
+                case 2: label = ui->lb_history3; break;
+                case 3: label = ui->lb_history4; break;
+                case 4: label = ui->lb_history5; break;
+                case 5: label = ui->lb_history6; break;
+                case 6: label = ui->lb_history7; break;
+                case 7: label = ui->lb_history8; break;
+                default: continue; // 如果文件超过5张，则继续循环
             }
-            // }else if(ui->lb_history2->pixmap() == nullptr){ 
-            //     ui->lb_history2->setPixmap(pixmap.scaled(ui->lb_history2->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-            // }else if(ui->lb_history3->pixmap() == nullptr){
-            //     ui->lb_history3->setPixmap(pixmap.scaled(ui->lb_history3->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-            // }else if(ui->lb_history4->pixmap() == nullptr){
-            //     ui->lb_history4->setPixmap(pixmap.scaled(ui->lb_history4->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-            // }else if(ui->lb_history5->pixmap() == nullptr){
-            //     ui->lb_history5->setPixmap(pixmap.scaled(ui->lb_history5->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-            // }
+            if (label) {
+                // 设置图片到QLabel
+                label->setPixmap(pixmap.scaled(label->size(), Qt::KeepAspectRatio));
+            }
         }
     }
 }

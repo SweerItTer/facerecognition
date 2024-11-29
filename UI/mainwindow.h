@@ -85,6 +85,7 @@ private slots:
     void on_but_stop_clicked();
     void on_but_save_clicked();
     void on_but_open_clicked();
+    void on_but_history_clicked();
     void readSaveImages(); 
 
     // page3 设置页面

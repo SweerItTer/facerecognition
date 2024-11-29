@@ -27,5 +27,7 @@
         <file>rail_on.png</file>
         <file>app.ico</file>
         <file>sed.png</file>
+        <file>play.png</file>
+        <file>stop.png</file>
     </qresource>
 </RCC>
