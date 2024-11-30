@@ -43,6 +43,7 @@ class MainWindow : public QMainWindow
 public:
 	explicit MainWindow(QWidget *parent = nullptr);
 	~MainWindow();
+    
     void StyleSheetInit();
     QPixmap getRoundRectPixmap(QPixmap srcPixMap, const QSize &size, int radius);
     QPointF splineSmooth(const QPointF &P0, const QPointF &P1, const QPointF &P2, const QPointF &P3, double t);
@@ -94,17 +95,16 @@ private slots:
     void on_but_facenetonnx_clicked();
 	void on_but_storagefile_clicked();
     void on_but_enterface_clicked();
-
-
+    void on_but_message_clicked();
 
 private:
     bool m_leftMousePressed = false; //鼠标是否点中标题栏，是true，否false
     QPoint m_StartPoint ; // 窗口的全局位置
     
-
-
     QString but_on = QString("QPushButton{background-color: rgb(62, 69, 176);}");// 打开
     QString but_off = QString("QPushButton{background-color: rgba(0, 0, 0, 0);}");// 未打开
+    
+    // 自定义类变量
     DataDBInfo dbInfo; // 数据库信息
     Configure *conf; // 配置数据库悬浮窗
     Yolo *yolo = new Yolo(nullptr); // yolo对象
@@ -113,7 +113,7 @@ private:
 	Script *callback = nullptr;
     enterface *ui_enterface = nullptr;
     Login *ui_login = nullptr;
-    Ort::Session *session_ = nullptr;
+
 
     // 保存上一次打开的路径
     void MainWindow::saveLastPath(const QString& savePath, const QString& path) {

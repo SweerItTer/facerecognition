@@ -19,7 +19,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     
-
     // 读取上一次打开的路径
     facenetLastPath = loadLastPath("/facenet_path.txt");
     yoloLastPath = loadLastPath("/yolo_path.txt");
@@ -1394,6 +1393,23 @@ void MainWindow::on_but_enterface_clicked()
         MYLOG << "Model loaded successfully";
     }
 }
+void MainWindow::on_but_message_clicked()
+{
+    // 打开文件对话框
+    QString fileName = QFileDialog::getExistingDirectory(
+        this,                           // 父窗口
+        tr("Message path"),           // 对话框标题
+        ui->le_message->text().trimmed() // 默认路径
+    );
+    // 检查用户是否选择了路径
+    if (!fileName.isEmpty()) {
+        ui->le_message->setText(fileName);
+    } else {
+        // 如果用户没有选择路径，可以处理这种情况
+        QMessageBox::warning(this, tr("No Path Selected"), tr("No path was selected."));
+    }
+}
+
 
 // ---------------- HJJ --------------- //
 void MainWindow::on_but_sure_clicked()
