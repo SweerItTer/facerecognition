@@ -80,10 +80,12 @@ void DecodeThread::Run()
 	int ret = 0;
 	AVFrame *frame = nullptr; // 分配空间
 	AVPacket *pkt = nullptr;
+	AVFrame *temp = av_frame_alloc();
 
 	while (!abort_) {
-		if (frame_queue_->Size() > 80) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		if (frame_queue_->Size() >= 60) {
+			temp = frame_queue_->Pop(100);
+			av_frame_unref(temp);
 			continue;
 		}
 

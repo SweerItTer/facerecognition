@@ -32,7 +32,6 @@ FaceDBWidget::~FaceDBWidget()
     if (conn) {
         mysql_close(conn);
     }
-    delete dbInfo;
     delete attendanceTable;
     delete faceFeaturesTable;
     delete idInformationTable;

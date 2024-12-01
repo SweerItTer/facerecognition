@@ -176,7 +176,7 @@ void PlayThread::AVFrameToCVMat(AVFrame *frame, cv::Mat &mat)
 	}
 
 	// 直接使用BGR24格式的数据
-	mat = cv::Mat(frame->height, frame->width, CV_8UC3, frame->data[0], frame->linesize[0]).clone();
+	mat = cv::Mat(frame->height, frame->width, CV_8UC3, frame->data[0], frame->linesize[0]);
 
 	// 使用缩放因子 0.5 来将图像的宽度和高度缩小到原来的一半
 	cv::resize(mat, mat, cv::Size(), 0.75, 0.75, cv::INTER_LINEAR);

@@ -103,8 +103,9 @@ void DemuxThread_network::Run()
 {
 	AVPacket *frame_packet = av_packet_alloc();
 	while(false == abort_){
-		if(video_queue_->Size() > 150){
-			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		if(video_queue_->Size() > 30){
+			frame_packet = video_queue_->Pop(100);
+			av_packet_unref(frame_packet);
 			continue;
 		}
 

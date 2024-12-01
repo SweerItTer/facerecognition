@@ -39,46 +39,81 @@ if (MSVC)
     # 忽略警告 C4819
     add_compile_options(/wd4819)
     # 忽略警告 C4267
-    add_compile_options(/wd4267)  
+    add_compile_options(/wd4267)
 endif()
 
-# Set paths to dependencies
-## hjj path
-# set(FFMPEG_PREFIX_PATH "C:/ffmpeg")
-# set(onnxDir "D:/Program/onnxruntime-win-x64-1.10.0/")
-# set(OpenCV_DIR "D:/Program/OpenCV/opencv/build/x64/vc15/lib")
-# set(sqlDir "C:/Program Files/MySQL/MySQL Server 8.0")
-## hhl path
-set(OpenCV_DIR "F:/OpenCV/opencv-4.5.1/build/x64/vc15/lib")
-set(onnxDir "F:/onnxruntime-win-x64-1.10.0/")
-set(FFMPEG_PREFIX_PATH "F:/FFmpeg/ffmpeg-6.1.1-full_build-shared")
-set(sqlDir "D:/MySql")
-
-if (sqlDir)
-    include_directories(${sqlDir}/include)
-    link_directories(${sqlDir}/lib)
-endif()
-# Find required packages
-find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS})
-
-# include qt lib (if Qt5_INCLUDE_DIRS donot include)
-include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
-
-# If onnxDir is provided, set include and lib paths
-if (onnxDir)
-    include_directories(${onnxDir}/include)
-    link_directories(${onnxDir}/lib)
+# 判断是否在 Docker 环境下
+if(DEFINED ENV{DOCKER_BUILD})
+    message(STATUS "Building in Docker environment")
+    # Docker 环境下的依赖路径
+    set(DEPS_PREFIX "/usr/local")
+    set(onnxDir "${DEPS_PREFIX}/onnxruntime")
+    set(FFMPEG_PREFIX_PATH "${DEPS_PREFIX}/ffmpeg")
+    set(OpenCV_DIR "${DEPS_PREFIX}/opencv")
+    set(MYSQL_DIR "${DEPS_PREFIX}/mysql")
+    
+    # 设置依赖库的包含路径
+    include_directories(
+        ${onnxDir}/include
+        ${FFMPEG_PREFIX_PATH}/include
+        ${OpenCV_DIR}/include
+        ${MYSQL_DIR}/include
+    )
+    
+    # 设置库文件路径
+    link_directories(
+        ${onnxDir}/lib
+        ${FFMPEG_PREFIX_PATH}/lib
+        ${OpenCV_DIR}/lib
+        ${MYSQL_DIR}/lib
+    )
 else()
-    message(FATAL_ERROR "ONNX Runtime directory not provided. Please set onnxDir.")
-endif()
+    # Set paths to dependencies
+    ## hjj path
+    set(FFMPEG_PREFIX_PATH "C:/ffmpeg")
+    set(onnxDir "D:/Program/onnxruntime-win-x64-1.10.0/")
+    set(OpenCV_DIR "D:/Program/OpenCV/opencv/build/x64/vc15/lib")
+    set(sqlDir "C:/Program Files/MySQL/MySQL Server 8.0")
+    set(VLD "D:/Program/Visual Leak Detector")
 
-# If FFmpeg is found or path is provided, set include and lib paths
-if (FFMPEG_PREFIX_PATH)
-    include_directories(${FFMPEG_PREFIX_PATH}/include)
-    link_directories(${FFMPEG_PREFIX_PATH}/lib)
-else()
-    message(FATAL_ERROR "FFmpeg directory not provided. Please set FFMPEG_PREFIX_PATH.")
+    ## hhl path
+    # set(OpenCV_DIR "F:/OpenCV/opencv-4.5.1/build/x64/vc15/lib")
+    # set(onnxDir "F:/onnxruntime-win-x64-1.10.0/")
+    # set(FFMPEG_PREFIX_PATH "F:/FFmpeg/ffmpeg-6.1.1-full_build-shared")
+    # set(sqlDir "D:/MySql")
+    
+    if (sqlDir)
+        include_directories(${sqlDir}/include)
+        link_directories(${sqlDir}/lib)
+    endif()
+    if (VLD)
+        add_definitions(-DVLD_ENABLE)
+        include_directories(${VLD}/include)
+        link_directories(${VLD}/lib/Win64)
+    endif()
+
+    # Find required packages
+    find_package(OpenCV REQUIRED)
+    include_directories(${OpenCV_INCLUDE_DIRS})
+
+    # include qt lib (if Qt5_INCLUDE_DIRS donot include)
+    include_directories(${Qt5Core_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
+
+    # If onnxDir is provided, set include and lib paths
+    if (onnxDir)
+        include_directories(${onnxDir}/include)
+        link_directories(${onnxDir}/lib)
+    else()
+        message(FATAL_ERROR "ONNX Runtime directory not provided. Please set onnxDir.")
+    endif()
+
+    # If FFmpeg is found or path is provided, set include and lib paths
+    if (FFMPEG_PREFIX_PATH)
+        include_directories(${FFMPEG_PREFIX_PATH}/include)
+        link_directories(${FFMPEG_PREFIX_PATH}/lib)
+    else()
+        message(FATAL_ERROR "FFmpeg directory not provided. Please set FFMPEG_PREFIX_PATH.")
+    endif()
 endif()
 
 # Glob the source and header files
@@ -94,9 +129,13 @@ file(GLOB_RECURSE Facenet_header "./Facenet/*.h" "./Facenet/*.hpp")
 file(GLOB_RECURSE UI_header "./UI/*.h" "./UI/*.hpp")
 file(GLOB_RECURSE Sql_header "./Sql/*.h" "./Sql/*.hpp")
 
+file(GLOB_RECURSE UIS "./UI/*.ui")
+
+
 # UI 文件
 set(FORMS
     ./UI/mainwindow.ui
+    ${UIS}
 )
 
 # 资源文件
@@ -135,7 +174,6 @@ target_link_libraries(FaceRecognition PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Charts
     Qt${QT_VERSION_MAJOR}::PrintSupport
-    # Qt${QT_VERSION_MAJOR}::Sql
     ${OpenCV_LIBS}
     onnxruntime
     libmysql
@@ -145,11 +183,19 @@ target_link_libraries(FaceRecognition PRIVATE
     avutil
     swscale
     swresample
+    vld
 )
 
-# Optionally, set output directory for the executable
-set_target_properties(FaceRecognition PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-)
-
-install(TARGETS FaceRecognition DESTINATION bin)
+if (DEFINED ENV{DOCKER_BUILD})
+    # 在 Docker 环境中，输出到 /app/bin
+    set_target_properties(FaceRecognition PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "/app/bin"
+    )
+    install(TARGETS FaceRecognition DESTINATION /app/bin)
+else()
+    # 本地构建时默认路径
+    set_target_properties(FaceRecognition PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+    install(TARGETS FaceRecognition DESTINATION bin)
+endif()

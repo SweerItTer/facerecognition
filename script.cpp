@@ -26,7 +26,7 @@ Script::~Script()
 	delete imageProcessor;
 
 	delete *database_ptr;
-
+	delete database_ptr;
 }
 
 void Script::Configurate(){
@@ -111,7 +111,6 @@ int Script::loadConfig(QFile &configFile) {
 			return -1;
 		}
 		return 0;
-// ---------------------- 顺序问题: 当用户未设置数据库配置,将会出现数据库报错,直接退出程序 ---
 	}
 	else {
 		std::cerr << "Error : Failed to open the configuration file." << std::endl;
@@ -124,7 +123,7 @@ int Script::loadConfig(QFile &configFile) {
 void Script::startProcessingTimer() {
 	processingTimer = new QTimer(this);
 	connect(processingTimer, &QTimer::timeout, this, &Script::processNextFrame);
-	processingTimer->start(5); // 每50ms处理一帧，可以根据需要调整
+	processingTimer->start(10); // 每50ms处理一帧，可以根据需要调整
 }
 
 void Script::processNextFrame() {
@@ -206,17 +205,17 @@ int Script::play() {
 void Script::pasue()
 {
 	if (p_thread) {
-		isPause = true;
 		p_thread->Pause(1);
 	}
+	isPause = true;
 }
 
 void Script::resume()
 {	
 	if (p_thread) {
-		isPause = false;
 		p_thread->Pause(0);
 	}
+	isPause = false;
 }
 
 void Script::prossPixSignal(QPixmap image){

@@ -30,7 +30,7 @@ public:
     ~FaceDatabase() {
         // 关闭连接
         mysql_close(conn);
-        //delete conn;
+        delete conn;
     }
 
 	// 插入特征向量到数据库

@@ -25,7 +25,13 @@ class Configure : public QWidget
 
 public:
 	explicit Configure(){}
-	virtual ~Configure(){}
+	virtual ~Configure(){
+		delete connectionName;
+		delete host;
+		delete port;
+		delete userName;
+		delete password;
+	}
 
 	void databaseConfigure(){
 		// 创建一个 QDialog 作为弹出窗口

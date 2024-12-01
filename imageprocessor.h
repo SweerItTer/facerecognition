@@ -63,7 +63,7 @@ public:
         delete hnsw; // HNSW索引
         //delete yolo;
         //delete facenet;
-        //delete database;
+        delete attendanceDatabase;
     }
 
     void setImage(cv::Mat img) {

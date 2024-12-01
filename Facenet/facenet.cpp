@@ -11,7 +11,8 @@ FaceNet::~FaceNet()
 	if (session) {
 		session->release();
 		delete session;
-	 }
+	}
+	delete env;
 }
 
 bool FaceNet::loadModel(QString model_path) {
