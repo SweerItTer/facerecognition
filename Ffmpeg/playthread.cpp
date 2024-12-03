@@ -19,9 +19,11 @@ PlayThread::~PlayThread(){
 		delete demux_thread;
 	}
 
-	video_decode_thread->Stop();
-	cout << "video_decode_thread stop\n";
-	delete video_decode_thread;
+	if(video_decode_thread) {
+		video_decode_thread->Stop();
+		cout << "video_decode_thread stop\n";
+		delete video_decode_thread;
+	}
 }
 
 void PlayThread::Start()
@@ -100,87 +102,99 @@ void PlayThread::run(){
 		cout << "video_decode_thread start falied\n";
 		return ;
 	}
-
-	// 声明分析用的mat和显示用的img
-	cv::Mat mat_;
-	//QPixmap img;
+	
 	while(!abord_){
-		while(paused); // 等待播放
-		AVFrame *frame = video_frame_queue.Pop(100);//取出帧
-
-		if (frame){
-//			qDebug() << frame->width << "x" << frame->height << "\n";
-			AVFrameToCVMat(frame, mat_);//转换为cv::Mat
-			//img = CVMatToQImage(mat_);//转换为qt支持的图像
-			//emit pixframesSignal(img);
-			emit cvframesSignal(mat_); // 发射信号，传递图像
+		while(paused) {
+			msleep(1);  // 避免空循环占用CPU
 		}
-		av_frame_unref(frame);
-		av_frame_free(&frame); // 使用完毕后释放frame
-		mat_.release();
+		
+		AVFrame *frame = video_frame_queue.Pop(100);
+		if (frame) {
+			cv::Mat mat_;
+			AVFrameToCVMat(frame, mat_);
+			
+			if(!mat_.empty()) {
+				emit cvframesSignal(mat_.clone());
+			}
+			
+			mat_.release();
+			av_frame_unref(frame);
+			av_frame_free(&frame);
+			frame = nullptr;  // 确保指针置空
+		} else {
+			msleep(1);  // 如果没有帧，短暂休眠避免CPU占用过高
+		}
 	}
 	cout << "PlayThread loop break.\n";
 
-	audio_packet_queue.release();//清空帧队列
+	// 先清理队列
+	audio_packet_queue.release();
 	video_packet_queue.release();
 	video_frame_queue.release();
 
-	if(isStream_){//退出线程
-		demux_thread_network->Stop();
-		cout << "demux_thread_network stop\n";
-//		delete demux_thread_network;
-	} else{
-		demux_thread->Stop();
-		cout << "demux_thread stop\n";
-//		delete demux_thread;
+	// 然后停止所有线程
+	if(isStream_){
+		if(demux_thread_network) {  // 添加空指针检查
+			demux_thread_network->Stop();
+			cout << "demux_thread_network stop\n";
+		}
+	} else {
+		if(demux_thread) {  // 添加空指针检查
+			demux_thread->Stop();
+			cout << "demux_thread stop\n";
+		}
 	}
 
-	video_decode_thread->Stop();
-	cout << "video_decode_thread stop\n";
-//	delete video_decode_thread;
+	if(video_decode_thread) {  // 添加空指针检查
+		video_decode_thread->Stop();
+		cout << "video_decode_thread stop\n";
+	}
 }
 
 bool PlayThread::isStream(const std::string& url) {
 	avformat_network_init();
-
 	AVFormatContext* formatContext = nullptr;
+	bool is_stream = false;  // 添加返回值变量
 
-	// Open the input URL
-	if (avformat_open_input(&formatContext, url.c_str(), nullptr, nullptr) != 0) {
+	// 添加错误处理
+	if (avformat_open_input(&formatContext, url.c_str(), nullptr, nullptr) < 0) {
 		std::cerr << "Could not open input URL" << std::endl;
 		return false;
 	}
 
-	// Retrieve the format name
-	std::string formatName = formatContext->iformat->name;
+	if (formatContext && formatContext->iformat) {  // 添加空指针检查
+		std::string formatName = formatContext->iformat->name;
+		is_stream = (formatName.find("hls") != std::string::npos ||
+					formatName.find("rtsp") != std::string::npos ||
+					formatName.find("udp") != std::string::npos ||
+					formatName.find("http") != std::string::npos);
+	}
 
-	// Close the input and free the format context
 	avformat_close_input(&formatContext);
-
-	// Check if the format name indicates a stream
-	return (formatName.find("hls") != std::string::npos ||
-			formatName.find("rtsp") != std::string::npos ||
-			formatName.find("udp") != std::string::npos ||
-			formatName.find("http") != std::string::npos);
+	return is_stream;
 }
 
 void PlayThread::AVFrameToCVMat(AVFrame *frame, cv::Mat &mat)
 {
-	if (frame == nullptr) {
-		qDebug() << "frame is empty" << endl;
-		return;
-	}
-	if (frame->data[0] == nullptr) {
-		qDebug() << "frame data is empty" << endl;
+	if (frame == nullptr || frame->data[0] == nullptr) {
+		qDebug() << "Invalid frame or frame data";
 		return;
 	}
 
-	// 直接使用BGR24格式的数据
-	mat = cv::Mat(frame->height, frame->width, CV_8UC3, frame->data[0], frame->linesize[0]);
-
-	// 使用缩放因子 0.5 来将图像的宽度和高度缩小到原来的一半
-	cv::resize(mat, mat, cv::Size(), 0.75, 0.75, cv::INTER_LINEAR);
-
+	try {
+		// 创建新的Mat对象
+		cv::Mat temp(frame->height, frame->width, CV_8UC3, frame->data[0], frame->linesize[0]);
+		
+		if(!temp.empty()) {
+			cv::resize(temp, mat, cv::Size(), 0.75, 0.75, cv::INTER_LINEAR);
+		}
+		
+		// 确保temp被释放
+		temp.release();
+	} catch (const cv::Exception& e) {
+		qDebug() << "OpenCV error:" << e.what();
+		//mat.release();  // 确保出错时mat被释放
+	}
 }
 
 QPixmap PlayThread::CVMatToQImage(cv::Mat raw_img){

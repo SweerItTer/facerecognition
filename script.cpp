@@ -128,13 +128,20 @@ void Script::startProcessingTimer() {
 
 void Script::processNextFrame() {
 	cv::Mat frame;
-	{// 取出帧
-	QMutexLocker locker(&queueMutex);
-	if (!frameQueue.isEmpty()) {
-		frame = frameQueue.dequeue();
+	{
+		QMutexLocker locker(&queueMutex);
+		if (!frameQueue.isEmpty()) {
+			frame = frameQueue.dequeue();
+			// 主动清理队列
+			if (frameQueue.size() > 25) {
+				while (frameQueue.size() > 25) {
+					cv::Mat old_frame = frameQueue.dequeue();
+					old_frame.release();
+				}
+			}
+		}
 	}
-	}
-	// 处理帧
+	
 	if (!frame.empty()) {
 		imageProcessor->setImage(frame);
 		frame.release();
@@ -226,8 +233,7 @@ void Script::prossPixSignal(QPixmap image){
 }
 
 void Script::prossCVSignal(cv::Mat image) {
-	if (isPause) 
-	{
+	if (isPause) {
 		image.release();
 		return; // 若处于暂停状态,则不处理图像
 	}

@@ -68,8 +68,12 @@ public:
 
     void setImage(cv::Mat img) {
         std::lock_guard<std::mutex> lock(mutex);
-        image = img; // 直接传递图像
-        img.release();  // 释放图像内存
+        // 如果已有未处理的图像，先释放它
+        if (!image.empty()) {
+            image.release();
+        }
+        image = img;
+        img.release();
         cv.notify_all();
     }
 
@@ -124,7 +128,12 @@ private:
         cv::Mat grayPrev, grayNext;
 
         while (!stopFlag) {
-            if(paused) continue;  // 如果暂停标志被设置，则跳过当前循环
+            if(paused) {
+                lock.unlock();
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                lock.lock();
+                continue;
+            }
             // 等待条件变量的通知，直到有新图像或停止标志被触发
             cv.wait(lock, [this] { return !image.empty() || stopFlag; });
             
@@ -182,7 +191,8 @@ private:
             // 计算平均运动量
             double avgMagnitude = cv::mean(magnitude)[0];
             // std::cout << "Average motion magnitude: " << avgMagnitude << std::endl;
-
+            flowChannels.clear();
+            flowChannels.shrink_to_fit();  // 释放vector占用的内存
             // 如果运动量大于阈值，则进行人脸检测
             if (!image.empty() && callback && avgMagnitude > 0.07) {
 
@@ -227,7 +237,6 @@ private:
                 // 释放 flow 矩阵
                 magnitude.release();
                 angle.release();
-                flowChannels.clear();
                 // 释放处理后的图像，确保内存不会被反复占用
                 image.release();
                 continue;
