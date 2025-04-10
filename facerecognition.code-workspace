@@ -3,9 +3,6 @@
 		{
 			"name": "facerecognition",
 			"path": "."
-		},
-		{
-			"path": "../build"
 		}
 	],
 	"settings": {
@@ -107,7 +104,11 @@
 			"cinttypes": "cpp",
 			"unordered_set": "cpp",
 			"filesystem": "cpp",
-			"qapplication": "cpp"
-		}
+			"qwidget": "cpp",
+			"coroutine": "cpp",
+			"resumable": "cpp",
+			"qtimer": "cpp"
+		},
+		"marscode.chatLanguage": "cn"
 	}
 }

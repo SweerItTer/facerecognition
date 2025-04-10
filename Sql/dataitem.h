@@ -4,8 +4,6 @@
 
 struct DataItem {
     std::string name;
-    std::vector<float> vector1;
-    std::vector<float> vector2;
-    std::vector<float> vector3;
+    std::vector<std::vector<float>> vectors;
 };
 #endif // DATAITEM_H

@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            // 设置文件路径防止“检测到 #include 错误”
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/Facenet",
+                "${workspaceFolder}/Sql",
+                "${workspaceFolder}/UI",
+                "${workspaceFolder}/Yolov8"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "D:\\0Qt\\Qt5.14.2\\Tools\\mingw730_64\\bin\\gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "windows-gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}

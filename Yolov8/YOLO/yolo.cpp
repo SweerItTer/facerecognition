@@ -32,22 +32,18 @@ bool Yolo::isCudaSupported(OrtSessionOptions* session_options) {
 bool Yolo::loadModel(QString filename)
 {
     if(!QFile::exists(filename)){// 检查文件是否存在
-       emit signal_str("**********未选中模型**********");
+        MYLOG << "文件不存在";
         return false; // 如果文件不存在，则直接返回
     }else{
         MYLOG<<"加载ONNX模型-开始";
 		env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Default");
         Ort::SessionOptions session_options;
 
-
-        // 检查是否有可用的CUDA设备（即检查是否可以使用GPU进行加速）
-//---------------
+//---------------// 检查是否有可用的CUDA设备（即检查是否可以使用GPU进行加速）
         if(isCudaSupported(session_options)) {
             MYLOG<<"将使用CUDA推理！";
-            emit signal_str("将使用GPU推理！");
         } else {
             MYLOG<<"将使用CPU推理！";
-            emit signal_str("将使用CPU推理！");
         }
 //---------------
         try {
@@ -58,36 +54,31 @@ bool Yolo::loadModel(QString filename)
             return false;
         }
 
-        emit signal_str("**********模型信息**********");
 		printInputModel(session);
 		printOutputModel(session);
-//        MYLOG<<"模型加载成功，返回true\n";
+        isLoaded = true;
         return true; // 模型加载成功，返回true
     }
 }
 
 // 运行模型
 
-void Yolo::runModel(cv::Mat m, QString type ,std::vector<cv::Mat> &retImg)
+void Yolo::runModel(cv::Mat m, QString type, std::vector<cv::Mat> &retImg)
 {
-	// MYLOG<<"YOLO推理-开始";
 	filetype = type;//文件类型
-
 	if(filetype == "image"){
-//		MYLOG<<"对图像进行识别";
 		cv::Mat final_mat = PreprocessImage(m);
 		retImg = sessionRun(session,final_mat,m);
-
 	}else{
 		MYLOG << "不支持的类型";
         return;
 	}
 }
 
-//停止检测
-void Yolo::stopModel()
+// 获取创建好的会话
+void Yolo::getSession(Ort::Session *&session_ret)
 {
-    
+    session_ret = session;
 }
 
 // 打印模型输入信息
@@ -181,7 +172,15 @@ cv::Mat Yolo::PreprocessImage(cv::Mat m)
     return final_mat;
 }
 
-//运行模型，画框
+
+/**
+ * @brief 运行模型，画框
+ * @param Ort::Session *session     创建好的会话
+ * @param cv::Mat final_mat         原图
+ * @param cv::Mat mat               画好框的原图
+ * @return std::vector<cv::Mat> re_mat       返回的图集[mat,cropped]
+ *         mat:原图，cropped:裁剪后的图
+ */
 std::vector<cv::Mat> Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv::Mat mat)
 {
     //----------
@@ -244,7 +243,7 @@ std::vector<cv::Mat> Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv
             bool should_continue = true;
             for (index = 0; index < output_tensor_size; ++index) { //输出节点的数值相乘 1*84*8400
                 if (value[index] > 0 && value[index] < 1) { //识别的分数
-                    if (value[index] > 0.6) { //人脸识别的阈值
+                    if (value[index] > 0.66) { //人脸识别的阈值
                         float  strValue = QString::number(value[index], 'f', 2).toFloat(); // 精确到两位小数
                         int id_1 = index/output_node_dims[2];
                         int id_2 = index-(id_1*output_node_dims[2]);
@@ -358,8 +357,11 @@ std::vector<cv::Mat> Yolo::sessionRun(Ort::Session *session,cv::Mat final_mat,cv
                 cropped = mat(roi).clone(); // 使用 clone() 创建一个新的 Mat 对象
             }
 
-            if(!cropped.empty()) 
-                re_mat.push_back(cropped);
+            if(!cropped.empty()) {
+                cv::Mat cropped_resized;
+                cv::resize(cropped, cropped_resized, cv::Size(cropped.cols * 5, cropped.rows * 5));
+                re_mat.push_back(cropped_resized);
+            }
 
 //-------------------------------------
 

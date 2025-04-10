@@ -1,24 +1,31 @@
 #define _use_dnn false //opencv dnn无法加载模型(结构不允许)
 
+#include <QString>
 #include "facenet.h"
 #include <opencv2/opencv.hpp>
 #include <onnxruntime_cxx_api.h>
 #include <vector>
-
-FaceNet::FaceNet(const wchar_t* model_path)
-{
-	env = new Ort::Env(ORT_LOGGING_LEVEL_ERROR, "");
-	Ort::SessionOptions session_options;
-
-	session = new Ort::Session(*env, model_path, session_options);
-}
 
 FaceNet::~FaceNet()
 {
 	if (session) {
 		session->release();
 		delete session;
-	 }
+	}
+	delete env;
+}
+
+bool FaceNet::loadModel(QString model_path) {
+	if(model_path.isEmpty()){
+		std::cerr << "model path is empty!" << std::endl;
+		return isLoaded;
+	}
+	env = new Ort::Env(ORT_LOGGING_LEVEL_ERROR, "");
+	Ort::SessionOptions session_options;
+
+	session = new Ort::Session(*env, model_path.toStdWString().c_str(), session_options);
+	isLoaded = true;
+	return isLoaded;
 }
 
 //修改图片大小
@@ -112,7 +119,7 @@ std::vector<float> FaceNet::outputs(const cv::Mat& image, const std::vector<int6
 		)
 	);
 
-	std::cout << "----FaceNet start run-----\n";
+	// std::cout << "----FaceNet start run-----\n";
 	// 运行模型推理
 	std::vector<Ort::Value> outputTensorsOrt = session->Run(
 		Ort::RunOptions{nullptr},

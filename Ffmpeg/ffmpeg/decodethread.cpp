@@ -78,12 +78,15 @@ int DecodeThread::Stop()
 void DecodeThread::Run()
 {
 	int ret = 0;
-	AVFrame *frame = nullptr; // 分配空间
+	AVFrame *frame = nullptr;
 	AVPacket *pkt = nullptr;
+	AVFrame *temp = av_frame_alloc();
+	uint8_t* buffer = nullptr;
 
 	while (!abort_) {
-		if (frame_queue_->Size() > 80) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		if (frame_queue_->Size() >= 30) {
+			temp = frame_queue_->Pop(100);
+			av_frame_unref(temp);
 			continue;
 		}
 
@@ -113,7 +116,7 @@ void DecodeThread::Run()
 
 			// 为 frameRGB 分配缓冲区
 			int numBytes = av_image_get_buffer_size(renderPixelFormat, codec_ctx->width, codec_ctx->height, 1);
-			uint8_t* buffer = (uint8_t*)av_malloc(numBytes * sizeof(uint8_t));
+			buffer = (uint8_t*)av_malloc(numBytes * sizeof(uint8_t));
 
 			av_image_fill_arrays(frameRGB->data, frameRGB->linesize, buffer, renderPixelFormat,
 								 codec_ctx->width, codec_ctx->height, 1);
@@ -177,6 +180,7 @@ void DecodeThread::Run()
 	}
 
 	av_frame_free(&frame);
+	av_freep(&buffer);  // 释放 buffer
 	av_frame_free(&frameRGB);
 	frame = nullptr;
 	frameRGB = nullptr;

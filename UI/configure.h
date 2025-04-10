@@ -17,7 +17,7 @@
 #include <QDialog>
 #include <QStandardPaths>
 
-
+#include <unordered_map>
 
 class Configure : public QWidget
 {
@@ -25,7 +25,13 @@ class Configure : public QWidget
 
 public:
 	explicit Configure(){}
-	virtual ~Configure(){}
+	virtual ~Configure(){
+		delete connectionName;
+		delete host;
+		delete port;
+		delete userName;
+		delete password;
+	}
 
 	void databaseConfigure(){
 		// 创建一个 QDialog 作为弹出窗口
@@ -36,11 +42,7 @@ public:
 		QVBoxLayout *mainLayout = new QVBoxLayout(&dialog);
 		QFormLayout *formLayout = new QFormLayout();
 
-		QLineEdit *connectionName = new QLineEdit();
-		QLineEdit *host = new QLineEdit();
-		QLineEdit *port = new QLineEdit();
-		QLineEdit *userName = new QLineEdit();
-		QLineEdit *password = new QLineEdit();
+
 		password->setEchoMode(QLineEdit::Password);
 
 		// 加载配置
@@ -71,8 +73,56 @@ public:
 			QMessageBox::information(this, "Configuration Saved", "The database configuration has been saved.");
 		}
 	}
+		
+	std::unordered_map<std::string, std::string> getDatabaseConfig() {
+		std::unordered_map<std::string, std::string> config;
+		loadConfigToStruct(config);
+		return config;
+	}
+
 
 private:
+	QLineEdit *connectionName = new QLineEdit();
+	QLineEdit *host = new QLineEdit();
+	QLineEdit *port = new QLineEdit();
+	QLineEdit *userName = new QLineEdit();
+	QLineEdit *password = new QLineEdit();
+
+	void loadConfigToStruct(std::unordered_map<std::string, std::string>& config) {
+		QString configPath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+		QDir().mkpath(configPath);
+		QFile configFile(configPath + "/db_config.json");
+
+		qDebug() << "Config Path: " << configPath;
+
+		// 打开配置文件
+		if (configFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+			QByteArray jsonData = configFile.readAll();
+			configFile.close();
+
+			QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+			if (jsonDoc.isNull()) {
+				QMessageBox::warning(nullptr, "Error", "Failed to parse the configuration file.");
+				return;
+			}
+
+			QJsonObject jsonObj = jsonDoc.object();
+
+			// 设置unordered_map的值
+			// 使用 toStdString().c_str() 将 QString 转为 const char* 类型
+			config["host"] = jsonObj.value("host").toString("localhost").toStdString();
+			config["port"] = jsonObj.value("port").toString("3306").toStdString();
+			config["userName"] = jsonObj.value("userName").toString("root").toStdString();
+			config["password"] = jsonObj.value("password").toString("").toStdString();
+		} else {
+			// 如果配置文件不存在，使用默认值
+			config["host"] = "localhost";
+			config["port"] = "3306";
+			config["userName"] = "root";
+			config["password"] = "";
+		}
+	}
+
 	void loadConfig(QLineEdit* connectionName, QLineEdit* host, QLineEdit* port, QLineEdit* userName, QLineEdit* password) {
 		QString configPath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
 		QDir().mkpath(configPath);

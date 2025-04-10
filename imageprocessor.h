@@ -7,6 +7,7 @@
 #include <condition_variable> // 流光法检测运动
 #include <memory>
 #include <functional>
+#include <set>
 
 #include <QPixmap>
 #include <QImage>
@@ -16,7 +17,7 @@
 #include "./Sql/facedatabase.h"
 #include "./Sql/customhnsw.h"
 #include "./Facenet/facenet.h"
-// #include "./pool.h"
+#include "./Sql/attendancerecord.h"
 
 class Yolo;
 
@@ -30,13 +31,16 @@ public:
         processingThread = std::thread(&ImageProcessor::process, this);
         hnsw = new CustomHNSW(1000); // 最大元素数为1000
 
+        buildHNSWIndex();  // 构建HNSW索引
+        attendanceDatabase = new AttendanceDatabase(database->getConnection()); // 考勤数据库
+        /*
         struct stat fileInfo;
         if(stat(hnswconfg.c_str(), &fileInfo) == 0){
             hnsw->loadFromFile(hnswconfg); // 从文件加载HNSW索引
             std::cout << "HNSW index loaded." << std::endl;
         } else {
             buildHNSWIndex();  // 构建HNSW索引
-        }
+        }*/
     }
 
     ~ImageProcessor() {
@@ -48,19 +52,28 @@ public:
         if (processingThread.joinable()) {
             processingThread.join();
         }
+        hnsw->saveToFile(hnswconfg); // 保存HNSW索引到文件
+        std::cout << "HNSW index saved." << std::endl;
+        /*
         if(hnsw->shouldUpdateIndex(hnswconfg)){
             std::cout << "HNSW index updated." << std::endl;
             hnsw->saveToFile(hnswconfg); // 保存HNSW索引到文件
         }
+        */
         delete hnsw; // HNSW索引
-        delete yolo;
-        delete facenet;
-        delete database;
+        //delete yolo;
+        //delete facenet;
+        delete attendanceDatabase;
     }
 
-    void setImage(const cv::Mat& img) {
+    void setImage(cv::Mat img) {
         std::lock_guard<std::mutex> lock(mutex);
-        image = img; // 直接引用
+        // 如果已有未处理的图像，先释放它
+        if (!image.empty()) {
+            image.release();
+        }
+        image = img;
+        img.release();
         cv.notify_all();
     }
 
@@ -69,86 +82,40 @@ public:
         callback = cb;
     }
 
-private:
-    // 对比特征
-    /*
-    bool compareFeatures(const std::vector<float>& features,
-                        const std::vector<std::vector<float>>& stored_features, const std::string& user_id, std::string& matched_user) {
-            // 计算特征距离
-            for (const auto& stored_feature : stored_features) {
-                if (features.size() != stored_feature.size()) {
-                    return false;  // 特征维度不匹配
-                }
-                double distance = 0.0;
-
-                try
-                {
-                    for (size_t i = 0; i < features.size(); ++i) {
-                        distance += std::pow(features.at(i) - stored_feature.at(i), 2);
-                    }
-                    distance = std::sqrt(distance);
-                }
-                catch(const std::exception& e)
-                {
-                    std::cerr << e.what() << '\n';
-                    return false;
-                }
-                
-                if (distance <= 1.1) {
-                    matched_user = user_id;
-                    return true;
-                }
-            }
-            return false;
+    void resetHSWN(){
+        std::lock_guard<std::mutex> lock(mutex);
+        buildHNSWIndex();  // 构建HNSW索引
     }
-    */
 
+    bool paused = false;  // 暂停标志
+
+private:
+    
     // 处理多张人脸
     std::string processFaces(const std::vector<cv::Mat>& result) {
-
-        // std::vector<std::future<bool>> futures;
-
+        // static int count = 0;
         std::string matched_user;
 
         // 存在多张人脸时
         for (int index = 1; index < result.size(); index++) {
             std::vector<float> features = facenet->outputs(result.at(index), {1, 3, 160, 160});
-            cv::imwrite("result.jpg", result.at(index));  // 保存检测结果图片
-
-            matched_user = hnsw->search(features, 3);// 特征搜索(返回最近3个匹配的用户名)
+            //cv::imwrite("result_" + std::to_string(count) + ".jpg", result.at(index));  // 保存检测结果图片
+            // count++;
+            matched_user = hnsw->search(features, 1);// 特征搜索(返回最近1个匹配的用户名)
         }
 
         return matched_user;
 
-        /*
-
-            // 异步特征比对
-            for (const auto& user_features : all_features) {
-                const std::string& user_id = user_features.first;
-                const auto& stored_features = user_features.second;
-
-                futures.emplace_back(pool->enqueue([this, features, stored_features, user_id, &matched_user]() {
-                        return compareFeatures(features, stored_features, user_id, matched_user);
-                        }));  // 异步执行特征比对
-
-            }
-
-        // 等待剩余的异步任务完成
-        for (auto& future : futures) {
-            if (future.get() == true) {
-                std::cout << "Matched user: " << matched_user << std::endl;
-                return;
-            }
-        }*/
     }
 
     // 数据库处理,构建HNSW索引
     void buildHNSWIndex() {
         auto all_features = database->getAllFeatures();  // 获取所有人脸特征以及用户名
         for(const auto& item : all_features) {
-            hnsw->addItem(item); // 向HNSW索引中添加人脸特征
+            // 直接添加DataItem，新的addItem方法会处理三个特征向量
+            hnsw->addItem(item);
         }
-        std::cout << "HNSW index built." << std::endl;
+        std::cout << "HNSW index built with " << all_features.size() << " feature vectors." << std::endl;
     }
 
     void process() {
@@ -157,16 +124,20 @@ private:
         QPixmap pixmap;
 
         // 运动检测
-        cv::Mat pimg;  // 上一帧图像
         cv::Mat nimg;  // 当前帧图像
         cv::Mat grayPrev, grayNext;
 
         while (!stopFlag) {
+            if(paused) {
+                lock.unlock();
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                lock.lock();
+                continue;
+            }
             // 等待条件变量的通知，直到有新图像或停止标志被触发
             cv.wait(lock, [this] { return !image.empty() || stopFlag; });
             
             if (stopFlag) break;  // 如果停止标志被设置，则退出循环
-
             cv::resize(image, nimg, cv::Size(image.cols / 10, image.rows / 10));  // 将图像缩小为原来的 50%
 
             // 将图像转换为灰度图
@@ -179,9 +150,20 @@ private:
 
             // 计算光流
             cv::Mat flow;
-            cv::calcOpticalFlowFarneback(grayPrev, grayNext, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
-
-
+            try
+            {
+                cv::calcOpticalFlowFarneback(grayPrev, grayNext, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
+            }
+            catch(const std::exception& e)
+            {
+                grayPrev.release();  // 释放上一帧图像
+                grayNext.release();  // 释放当前帧图像
+                flow.release();  // 释放光流
+                std::cerr << "Optical flow calculation failed: " << e.what() << std::endl;
+                // throw std::runtime_error(e.what());  // 跳过当前循环
+                continue;  // 跳过当前循环
+            }
+       
             // 检查 flow 的维度
             if (flow.empty() || flow.channels() != 2) {
                 std::cerr << "Flow calculation failed or has incorrect number of channels!" << std::endl;
@@ -191,7 +173,7 @@ private:
             // 使用第二种重载分割 flow
             std::vector<cv::Mat> flowChannels;
             cv::split(flow, flowChannels);  // flowChannels 将会包含 flow 的各个通道
-
+            
             // 检查分割结果
             if (flowChannels.size() != 2) {
                 std::cerr << "Flow split did not produce two channels!" << std::endl;
@@ -209,10 +191,12 @@ private:
             // 计算平均运动量
             double avgMagnitude = cv::mean(magnitude)[0];
             // std::cout << "Average motion magnitude: " << avgMagnitude << std::endl;
-            
+            flowChannels.clear();
+            flowChannels.shrink_to_fit();  // 释放vector占用的内存
             // 如果运动量大于阈值，则进行人脸检测
-            if (!image.empty() && callback && avgMagnitude > 1.0) {
-                std::cout << "Motion detected." << std::endl;
+            if (!image.empty() && callback && avgMagnitude > 0.07) {
+
+                // std::cout << "Motion detected." << std::endl;
                 std::vector<cv::Mat> result;
 
                 // 使用 YOLO 模型进行图像处理
@@ -225,10 +209,37 @@ private:
                 }
                 // 调用人脸处理函数处理 YOLO 检测到的人脸            
                 // 如果检测到人脸，处理并创建 QPixmap
-                if (result.size() > 1) std::string uname = processFaces(result);
+                if (result.size() > 1) {
+                    std::string uname = processFaces(result);
+                    // 检查是否已经记录过该用户
+                    if (recordedNames.find(uname) == recordedNames.end() && !uname.empty()) {
+                        std::cout << "New Co-worker detected: " << uname << std::endl; 
+                        recordedNames.insert(uname);  // 将用户名添加到集合中
+                        attendanceDatabase->insertRecord(uname, "IN");// 记录用户的最早出现
+                    }
+                }
+                
                 QImage img((uchar*)(result[0].data), static_cast<int>(result[0].cols), 
                                 static_cast<int>(result[0].rows), static_cast<int>(result[0].step), QImage::Format_RGB888);
                 pixmap = QPixmap::fromImage(img.rgbSwapped());
+                // 使用回调函数返回处理后的图像
+                callback(pixmap);
+                pixmap = QPixmap();
+                // 更新上一帧图像
+                grayPrev = std::move(grayNext);
+                // 释放处理后的图像，确保内存不会被反复占用
+                image.release();
+                nimg.release();  // 当前帧图像
+                flow.release();
+                // 释放 flow 通道
+                flowX.release();
+                flowY.release();
+                // 释放 flow 矩阵
+                magnitude.release();
+                angle.release();
+                // 释放处理后的图像，确保内存不会被反复占用
+                image.release();
+                continue;
             }
             // 原图显示
             QImage img((uchar*)(image.data), static_cast<int>(image.cols), 
@@ -237,11 +248,25 @@ private:
 
             // 使用回调函数返回处理后的图像
             callback(pixmap);
+            pixmap = QPixmap();
             // 更新上一帧图像
-            grayPrev = grayNext.clone();
+            grayPrev = std::move(grayNext);
+            nimg.release();  // 当前帧图像
+            flow.release();
+            // 释放 flow 通道
+            flowX.release();
+            flowY.release();
+            // 释放 flow 矩阵
+            magnitude.release();
+            angle.release();
+            flowChannels.clear();
             // 释放处理后的图像，确保内存不会被反复占用
             image.release();
         }
+        image.release();
+        nimg.release();  // 当前帧图像
+        grayPrev.release();
+        grayNext.release();
     }
 
 
@@ -251,6 +276,8 @@ private:
     std::function<void(const QPixmap&)> callback;
     cv::Mat image;
     bool stopFlag;
+    // 类的成员变量，存储已记录的用户名称
+    std::set<std::string> recordedNames;    
 
     std::string hnswconfg = "./hnsw.bin";
 
@@ -259,6 +286,7 @@ private:
     Yolo *yolo = nullptr;
     FaceNet *facenet = nullptr;
     FaceDatabase *database = nullptr;
+    AttendanceDatabase *attendanceDatabase = nullptr;
 };
 
 #endif // IMAGEPROCESSOR_H

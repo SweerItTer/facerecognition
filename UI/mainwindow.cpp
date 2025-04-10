@@ -1,8 +1,16 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "configure.h"
+
+#include <vector>
+#include <unordered_map>
+#include <string>
+#include <sstream>
 
 #define MYLOG qDebug() << "[" << __FILE__ << ":" << __LINE__ << "]"
+static bool isplay = false;
+
+QString facenetLastPath;
+QString yoloLastPath;
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -10,33 +18,173 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    
+    // 读取上一次打开的路径
+    facenetLastPath = loadLastPath("/facenet_path.txt");
+    yoloLastPath = loadLastPath("/yolo_path.txt");
+    if (!facenetLastPath.isEmpty()) ui->le_facenetonnx->setText(facenetLastPath);
+    if (!yoloLastPath.isEmpty()) ui->le_onnx->setText(yoloLastPath);
 
-	callback = new Script(this);
-
+    // 将创建好的对象传递给callback
+	callback = new Script(this, yolo, facenet, &database);
+    conf = new Configure();
     // 初始化
+    StyleSheetInit(); // 样式初始化
     // page0 首页统计图
     setBarChart();
     setBarChart_2();
-    setProgressBar();
+    double percentage = 0.7;
+    setProgressBar(percentage);
     setPieChart();
     setLineChart();
     setSplineChart();
-    // page2 数据库
-    // mysqlInit();
+    // page1 摄像头
+    // on_but_save_clicked();
+    //----
+    on_but_home_clicked(); 
+    ui->but_home->setChecked(true);
+    
+}
 
-    // 个性化
+MainWindow::~MainWindow()
+{
+    if (yolo) {
+        delete yolo;
+        yolo = nullptr; // 将指针设为nullptr
+    }
+    if (facenet) {
+        delete facenet;
+        facenet = nullptr; // 将指针设为nullptr
+    }
+    if (callback) {
+        delete callback;
+        callback = nullptr;
+    }
+    if(ui_enterface){
+        delete ui_enterface;
+        ui_enterface = nullptr; // 将指针设为nullptr
+    }
+    if(ui_login){
+        delete ui_login;
+        ui_login = nullptr; // 将指针设为nullptr
+    }
+    
+    delete conf;
+    delete ui;
+}
+
+
+// 样式初始化
+void MainWindow::StyleSheetInit()
+{
     // 窗口
     this->setWindowFlags(Qt::FramelessWindowHint);      //隐藏最大最小化等按键
     this->setAttribute(Qt::WA_TranslucentBackground);         //设置窗口透明化
     this->setStyleSheet(QString("QMainWindow{"
                                  "background-color:rgb(236, 237, 255);"
                                  "border-radius: 10px;"
-                                 "border-style:solid;"
-                                 "border-width:1px;"
+                                 "border-style:none;"
+                                 "border-width:0px;"
                                  "border-color:rgb(213, 213, 213);"
                                  "}"));
 
     // 侧边栏
+    ui->but_user->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    ui->but_user->setStyleSheet(QString("QToolButton{"
+                                    "background-color: rgba(255, 255, 255, 0);"
+                                    "border-radius:8px;"
+                                    "border-style:none;"
+                                    "border-width:1px;"
+                                    "border-color:rgba(0, 0, 0, 0);"
+                                    "font-size:20px;"
+                                    "color: rgb(255, 255, 255);"
+                                    "}"
+                                    "QToolButton:hover{"
+                                    "background-color: rgba(103, 188, 234, 0.3);"
+                                    "color: rgb(82, 85, 193);"
+                                    "}"
+                                    "QToolButton:checked {"
+                                    "background-color: rgba(245, 139, 89, 0.5);"
+                                    "color: rgb(255, 255, 255);"
+                                    "}"));
+
+    // QButtonGroup *group = new QButtonGroup(this);
+    QButtonGroup *group = new QButtonGroup(ui->widget);
+    // group->addButton(ui->but_user, 0);
+    group->addButton(ui->but_home, 0);
+    group->addButton(ui->but_camera, 1);    
+    group->addButton(ui->but_data, 2);
+    group->addButton(ui->but_set, 3);
+    group->setExclusive(true);
+
+    // ui->but_user->setCheckable(true);
+    ui->but_home->setCheckable(true);
+    ui->but_camera->setCheckable(true);
+    ui->but_data->setCheckable(true);
+    ui->but_set->setCheckable(true);
+
+    QString sidebar_butStyle = QString("QPushButton{"
+                                    "background-color: rgba(255, 255, 255, 0);"
+                                    "border-radius:8px;"
+                                    "border-style:none;"
+                                    "border-width:1px;"
+                                    "border-color:rgba(0, 0, 0, 0);"
+                                    "font-size:20px;"
+                                    "font-weight:bold;"
+                                    "color: rgb(255, 255, 255);"
+                                    "}"
+                                    "QPushButton:hover{"
+                                    "background-color: rgba(179, 222, 245, 0.5);"
+                                    "}"
+                                    "QPushButton:checked {"
+                                    "background-color: rgba(255, 255, 255, 0.8);"
+                                    "color: rgb(82, 85, 193);"
+                                    "}");
+    
+    QIcon homeIcon;
+    homeIcon.addFile(":/home.png", QSize(), QIcon::Normal, QIcon::Off);     // 正常状态
+    homeIcon.addFile(":/home_on.png", QSize(), QIcon::Normal, QIcon::On); // 按下状态
+    ui->but_home->setIcon(homeIcon);
+    ui->but_home->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_home->setStyleSheet(sidebar_butStyle);
+
+    QIcon cameraIcon;
+    cameraIcon.addFile(":/camare.png", QSize(), QIcon::Normal, QIcon::Off);     // 正常状态
+    cameraIcon.addFile(":/camare_on.png", QSize(), QIcon::Normal, QIcon::On); // 按下状态
+    ui->but_camera->setIcon(cameraIcon);
+    ui->but_camera->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_camera->setStyleSheet(sidebar_butStyle);
+
+    QIcon dataIcon;
+    dataIcon.addFile(":/data.png", QSize(), QIcon::Normal, QIcon::Off);     // 正常状态
+    dataIcon.addFile(":/data_on.png", QSize(), QIcon::Normal, QIcon::On); // 按下状态
+    ui->but_data->setIcon(dataIcon);
+    ui->but_data->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_data->setStyleSheet(sidebar_butStyle);
+
+    QIcon setIcon;
+    setIcon.addFile(":/set.png", QSize(), QIcon::Normal, QIcon::Off);     // 正常状态
+    setIcon.addFile(":/set_on.png", QSize(), QIcon::Normal, QIcon::On); // 按下状态
+    ui->but_set->setIcon(setIcon);
+    ui->but_set->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_set->setStyleSheet(sidebar_butStyle);
+
+    QIcon userIcon;
+    userIcon.addFile(":/user.png", QSize(), QIcon::Normal);     // 正常状态
+    ui->but_user->setIcon(userIcon);
+    ui->but_user->setIconSize(QSize(80, 80)); // 设置图标的大小
+    ui->but_user->setStyleSheet(QString("QToolButton{"
+                                        "background-color: rgba(255, 255, 255, 0);"
+                                        "padding-top: 15px;"
+                                        "border-radius:8px;"
+                                        "border-style:none;"
+                                        "border-width:1px;"
+                                        "border-color:rgba(0, 0, 0, 0);"
+                                        "font-size:16px;"
+                                        "font-weight:bold;"
+                                        "color: rgb(255, 255, 255);"
+                                        "}"));
+
     ui->widget->setStyleSheet(QString("QWidget{"
                                         "background-color: rgb(116, 121, 206);"
                                         "border-top-left-radius:0px;"
@@ -46,20 +194,7 @@ MainWindow::MainWindow(QWidget *parent)
                                         "border-style:solid;"
                                         "border-width:1px;"
                                         "border-color:rgb(116, 121, 206);"
-                                        "}"
-                                        "QPushButton{"
-                                        "background-color: rgba(0, 0, 0, 0);"
-                                        "border-radius:0px;"
-                                        "border-style:none;"
-                                        "border-right-width:0px"
-                                        "}"
-                                        "QPushButton:hover{"
-                                        "background-color: rgba(103, 188, 234, 0.5);"
-                                        "}"
-                                        "QPushButton:checked{"
-                                        "background-color: rgb(62, 69, 176);"
                                         "}"));
-
 
 
     // 标题栏
@@ -69,9 +204,9 @@ MainWindow::MainWindow(QWidget *parent)
                                         "border-top-right-radius:10px;"
                                         "border-bottom-right-radius:0px;"
                                         "border-bottom-left-radius:0px;"
-                                        "border-style:solid;"
+                                        "border-style:none;"
                                         "border-width:1px;"
-                                        "border-color:rgb(82, 85, 193);"
+                                        "border-color:rgba(82, 85, 193, 0);"
                                         "min-height: 30px;"
                                         "}"
                                         "QPushButton{"
@@ -92,7 +227,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     // 主页
-    QImage image (QString(":/lb_camaretest.png")) ;
+    QImage image (QString(":/lb_camaretest.png"));
     QPixmap pixmap = QPixmap::fromImage(image);
     pixmap = pixmap.scaled(ui->lb_cameramin->size(),Qt::KeepAspectRatio);
     pixmap = getRoundRectPixmap(pixmap,pixmap.size(),20);
@@ -127,7 +262,9 @@ MainWindow::MainWindow(QWidget *parent)
                                     "border-style:solid;"
                                     "border-width:2px;"
                                     "border-color:rgb(208, 208, 211);"
-                                    "background-color: rgba(255, 255, 255,0);"
+                                    "background-color: rgb(255, 255, 255);"
+                                    "selection-background-color: rgb(82, 85, 193);" // 设置选中项的背景色
+                                    "selection-color: rgb(255, 255, 255);" // 设置选中项的文字颜色
                                     "}");
 
     ui->box_spline->setStyleSheet(comboboxStyle);
@@ -154,6 +291,17 @@ MainWindow::MainWindow(QWidget *parent)
                                              "border-width:1px;"
                                              "border-color:rgb(255,255,255);"
                                              "}"));
+
+    // 主页按键样式
+    QString QPBut_Style = QString("QPushButton{"
+                                "background-color: rgb(82, 85, 193);"
+                                "border-radius:20px;"
+                                "border-style:solid;"
+                                "}"
+                                "QPushButton:hover{"
+                                "background-color: rgba(103, 188, 234, 0.5);"
+                                "}");
+    ui->pushButton->setStyleSheet(QPBut_Style);
     ui->widget_rgbar->setStyleSheet(QString("QWidget{"
                                             "background-color: rgb(255, 255, 255);"
                                             "border-radius:20px;"
@@ -161,14 +309,7 @@ MainWindow::MainWindow(QWidget *parent)
                                             "border-width:1px;"
                                             "border-color:rgb(255,255,255);"
                                             "}"
-                                        "QPushButton{"
-                                        "background-color: rgb(82, 85, 193);"
-                                        "border-radius:20px;"
-                                        "border-style:solid;"
-                                        "}"
-                                        "QPushButton:hover{"
-                                        "background-color: rgba(103, 188, 234, 0.5);"
-                                        "}"));
+                                            ));
 
     ui->box_pie->setStyleSheet(comboboxStyle);
     ui->widget_pie->setStyleSheet(QString("QWidget{"
@@ -189,13 +330,12 @@ MainWindow::MainWindow(QWidget *parent)
                                                "border-width:1px;"
                                                "border-color:rgb(255,255,255);"
                                                "}"));
-    ui->widget_4->setStyleSheet(QString("QWidget{"
-                                               "background-color: rgb(255, 255, 255);"
-                                               "border-radius:20px;"
-                                               "border-style:solid;"
-                                               "border-width:1px;"
-                                               "border-color:rgb(255,255,255);"
-                                               "}"));
+    ui->widget_4->setStyleSheet(QString("QWidget{background-color: rgb(255, 255, 255);"
+                                        "border-radius:20px;"
+                                        "border-style:solid;"
+                                        "border-width:1px;"
+                                        "border-color:rgb(255,255,255);"
+                                        "}"));
 
 
     // 摄像头界面
@@ -218,18 +358,106 @@ MainWindow::MainWindow(QWidget *parent)
                                          "border-width:1px;"
                                          "border-color:rgb(255,255,255);"
                                          "}"));
+    QIcon stopIcon(":/play.png");
+    ui->but_stop->setIcon(stopIcon);
+    ui->but_stop->setIconSize(QSize(30, 30)); // 设置图标的大小
+    ui->but_stop->setStyleSheet(QString("QPushButton{"
+                                "background-color: rgba(255, 255, 255, 0);"
+                                "border-style:none;"
+                                "border-color:rgba(190, 190, 190, 0);"
+                                "color: rgba(0, 0, 0, 0);"
+                                "}"));
+    ui->widget_3->setStyleSheet(QString("QWidget{"
+                                        "background-color: rgb(255, 255, 255);"
+                                        "border-radius:20px;"
+                                        "border-style:solid;"
+                                        "border-width:1px;"
+                                        "border-color:rgb(255,255,255);"
+                                        "}"));
     // 数据库界面
 
     // 设置界面
+    // 按钮样式
+    QString setPage_butStyle = QString("QPushButton{"
+                                "background-color: rgba(255, 255, 255, 0.8);"
+                                "border-radius:17px;"
+                                "border-style:solid;"
+                                "border-width:1px;"
+                                "border-color:rgb(190, 190, 190);"
+                                "font-size:18px;"
+                                "color: rgb(0, 0, 0);"
+                                "}"
+                                "QPushButton:hover{"
+                                "border-color:rgb(82, 85, 193);"
+                                "color: rgb(82, 85, 193);"
+                                "}");                                   
+    ui->but_rtsp->setStyleSheet(setPage_butStyle);
+    ui->but_onnx->setStyleSheet(setPage_butStyle);
+    ui->but_facenetonnx->setStyleSheet(setPage_butStyle);
+    ui->but_storagefile->setStyleSheet(setPage_butStyle);
+    ui->but_enterface->setStyleSheet(setPage_butStyle);
+    ui->but_message->setStyleSheet(setPage_butStyle);
 
+    //---page1
+    ui->but_save->setStyleSheet(setPage_butStyle);
+    ui->but_open->setStyleSheet(setPage_butStyle);
+    ui->but_history->setStyleSheet(setPage_butStyle);
+    //---------------
 
+    ui->but_sure->setStyleSheet(QString("QPushButton{"
+                                "background-color: rgb(82, 85, 193);"
+                                "border-radius:17px;"
+                                "border-style:solid;"
+                                "border-width:1px;"
+                                "border-color: rgb(255, 255, 255);"
+                                "font-size:18px;"
+                                "color: rgb(255, 255, 255);"
+                                "}"
+                                "QPushButton:hover{"
+                                "background-color: rgba(179, 222, 245, 0.8);"
+                                "border-color: rgb(82, 85, 193);"
+                                "color: rgb(82, 85, 193);"
+                                "}"));
+           
+    // 输入框样式
+    QString setPage_inputStyle = QString("QLineEdit{"
+                                "background-color: rgba(255, 255, 255, 0.8);"
+                                "border-radius:5px;"
+                                "border-style:solid;"
+                                "border-width:1px;"
+                                "border-color:rgb(190, 190, 190);"
+                                "font-size:18px;"
+                                "color: rgb(0, 0, 0);"
+                                "}");
+    ui->le_rtsp->setStyleSheet(setPage_inputStyle);
+    ui->le_onnx->setStyleSheet(setPage_inputStyle);
+    ui->le_facenetonnx->setStyleSheet(setPage_inputStyle);
+    ui->le_storagefile->setStyleSheet(setPage_inputStyle);
+    ui->le_message->setStyleSheet(setPage_inputStyle);
+    ui->le_facedata->setStyleSheet(setPage_inputStyle);
+    
+    // QTextEdit样式
+    ui->te_onnxmessage->setStyleSheet(QString("QTextEdit{"
+                                    "background-color: rgba(255, 255, 255, 0.8);"
+                                    "border-radius:5px;"
+                                    "border-style:solid;"
+                                    "border-width:1px;"
+                                    "border-color:rgb(190, 190, 190);"
+                                    "font-size:18px;"
+                                    "color: rgb(0, 0, 0);"
+                                    "}"));
+    // 标签样式 
+    QString setPage_labelStyle = QString("QLabel{"
+                                "font-size:18px;"
+                                "color: rgb(0, 0, 0);"
+                                "}");
+    ui->lb_rtsp->setStyleSheet(setPage_labelStyle);
+    ui->lb_onnx->setStyleSheet(setPage_labelStyle);
+    ui->lb_facenet->setStyleSheet(setPage_labelStyle);
+    ui->lb_storagefile->setStyleSheet(setPage_labelStyle);
+    ui->lb_message->setStyleSheet(setPage_labelStyle);
+    ui->lb_enterface->setStyleSheet(setPage_labelStyle);
 
-}
-
-MainWindow::~MainWindow()
-{
-	delete callback;
-    delete ui;
 
 }
 
@@ -314,19 +542,60 @@ QPixmap MainWindow::getRoundRectPixmap(QPixmap srcPixMap, const QSize & size, in
     return destImage;
 }
 
+// 用户界面
+void MainWindow::on_but_user_clicked()
+{
+    if(ui->but_user->text() == "点击登录")
+    {
+        ui_login = new Login(nullptr,database);
+        ui_login->setCallback([this]() {
+            if (callback) {
+                callback->resume();
+            }
+        });
+        ui_login->setWindowModality(Qt::ApplicationModal);
+        ui_login->show();
+        connect(ui_login, &Login::loginSignal, this, &MainWindow::on_login_signal);// 登录信号
+    }else{
+        // 打开用户界面
+        ui->stackedWidget->setCurrentIndex(5);
+    }
+    
+}
 
+void MainWindow::on_login_signal(std::string account)
+{
+    MYLOG << "account";
+    MYLOG << account.c_str();
+    // 登录成功，显示用户名
+    ui->but_user->setText(QString::fromStdString(account));
+}
 
 // 主界面
 void MainWindow::on_but_home_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
-
+    if(ui->lb_camera->pixmap() == nullptr || ui->lb_camera->pixmap()->isNull())
+    {
+        // 获取QLabel上的QPixmap
+        QPixmap pixmap = *ui->lb_camera->pixmap();
+        pixmap = pixmap.scaled(ui->lb_cameramin->size(),Qt::KeepAspectRatio);
+        pixmap = getRoundRectPixmap(pixmap,pixmap.size(),20);
+        ui->lb_cameramin->setPixmap(pixmap);
+    }
 }
 
 // 摄像机
 void MainWindow::on_but_camera_clicked()
 {
-    ui->stackedWidget->setCurrentIndex(1);
+    // 打开摄像头
+    if(isplay) ui->stackedWidget->setCurrentIndex(1);
+    else{
+        int ret = callback->play();
+        if(ret < 0) QMessageBox::warning(this, tr("No configure"), tr("You have not configured yet."));
+        else ui->stackedWidget->setCurrentIndex(1);
+        isplay = true;
+    }
 }
 
 // 后台数据
@@ -347,7 +616,8 @@ void MainWindow::on_but_set_clicked()
  * @param int min        范围（最小值）
  * @param int max        范围（最大值）
  * @return QVector<QPointF> data       随机数的点集
- *
+ * 
+ * 测试用
  * x值默认int y值默认double
  * x值默认间隔1 y为随机数
  */
@@ -463,17 +733,6 @@ void MainWindow::setBarChart()
     legend->setIconSize(10,10); // 图例图标的大小
     legend->setTextColor(QColor(208, 208, 211));
 
-    // 下述注释方法会导致图表和图例之间有一段距离，无法消除
-//    legend->addElement(0,1,legend->item(0));
-//    legend->addElement(0,2,legend->item(1));
-//    legend->addElement(0,3,legend->item(2));
-//    legend->addElement(0,4,legend->item(3));
-//    legend->setMargins(QMargins(0,0,100,0));
-//    int count = customPlot->plotLayout()->rowCount();
-//    customPlot->plotLayout()->addElement(count,0,legend);
-//    customPlot->plotLayout()->setRowStretchFactor(count,0.0001);
-//    customPlot->axisRect()->insetLayout()->setInsetAlignment(0,Qt::AlignCenter|Qt::AlignBottom);
-
     legend->setFillOrder(QCPLayoutGrid::foColumnsFirst);
     customPlot->plotLayout()->setMargins(QMargins(0, 0, 0, 20));           // 首先为底部预留出足够的空间
     customPlot->axisRect()->insetLayout()->setInsetPlacement(0, QCPLayoutInset::ipFree);   // 设置以任意位置放置图例，以对齐边界的方式不行
@@ -570,12 +829,18 @@ void MainWindow::setBarChart_2()
     customPlot->replot();
 }
 
-// 圆形加载条
-void MainWindow::setProgressBar()
+/**
+ * @brief 圆形进度条
+ * @param double percentage    百分比 eg：0.05
+ * @return 无
+ *
+ * 设置首页的圆形进度条，输入两位小数点的数
+ */
+void MainWindow::setProgressBar(double percentage)
 {
-    double data_1 = QRandomGenerator::global()->bounded(0,50);
-    double data_2 = QRandomGenerator::global()->bounded(0,50);
-    double percentage = (data_1/(data_1+data_2));//百分比
+    // double data_1 = QRandomGenerator::global()->bounded(0,50);
+    // double data_2 = QRandomGenerator::global()->bounded(0,50);
+    // double percentage = (data_1/(data_1+data_2));//百分比
 
     int side = qMin(ui->lb_roundprogessbar->width(),ui->lb_roundprogessbar->height());
     QImage background(side,side, QImage::Format_ARGB32_Premultiplied);
@@ -609,13 +874,13 @@ void MainWindow::setProgressBar()
     QPoint startPoint (side/2-r,side/2+radius-r);// 开始左上点
     QRect startRect(startPoint,QSize(r*2,r*2));// 开始的矩形框
 
-    const double Angle =270 - percentage * 360; // 角度
-    const double pi = 3.14159265358979323846; // 圆周率π
-    double AngleInRadians = Angle * (pi / 180.0);
-    double x = cos(AngleInRadians)*radius;
-    double y = sin(AngleInRadians)*radius;
-    QPoint endPoint = QPoint(side/2+x-r,side/2-y-r);
-    QRect endRect(endPoint,QSize(r*2,r*2-1));
+    const double Angle = 270 - percentage * 360; // 角度
+    // const double pi = 3.14159265358979323846; // 圆周率π
+    // double AngleInRadians = Angle * (pi / 180.0);
+    // double x = cos(AngleInRadians)*radius;
+    // double y = sin(AngleInRadians)*radius;
+    // QPoint endPoint = QPoint(side/2+x-r,side/2-y-r);
+    // QRect endRect(endPoint,QSize(r*2-1,r*2-1));
     qreal endAngle = startAngle - Angle;// 结束角度
 
     painter.setPen(QPen(QColor(0, 0, 0,0),1));
@@ -626,9 +891,9 @@ void MainWindow::setProgressBar()
 
     QPainterPath path;
     path.moveTo(startPoint.x()+r,startPoint.y()+r*2);
-    path.arcTo(startRect,270,180);// 开始的半圆
+    // path.arcTo(startRect,270,180);// 开始的半圆
     path.arcTo(rectmiddle,startAngle, -endAngle); // 内侧圆弧
-    path.arcTo(endRect,Angle+180,180);// 结束的半圆
+    // path.arcTo(endRect,Angle+180,180);// 结束的半圆
     path.arcTo(rectbackground,Angle, 180+90-Angle); // 外侧圆弧
     path.closeSubpath(); // 封闭路径
     painter.drawPath(path);
@@ -943,7 +1208,9 @@ void MainWindow::on_but_min_clicked()
 // 关闭窗口
 void MainWindow::on_but_off_clicked()
 {
-    QApplication::quit();//立即终止应用程序
+    // QApplication::quit();//立即终止应用程序
+    // close(); // 关闭窗口
+    MainWindow::close();
 }
 
 // use to test
@@ -960,37 +1227,246 @@ void MainWindow::on_pushButton_clicked()
 {
     setBarChart();
     setBarChart_2();
-    setProgressBar();
+    double percentage = 0.7;
+    setProgressBar(percentage);
     setPieChart();
     setLineChart();
     setSplineChart();
 }
+// page1 摄像头
+// 停止视频播放
+void MainWindow::on_but_stop_clicked()
+{
+    if(ui->but_stop->text() == "ll")
+    {   
+        callback->pasue();
+        ui->but_stop->setText("l>");
+        QIcon stopIcon(":/play.png");
+        ui->but_stop->setIcon(stopIcon);
+
+    }else if (ui->but_stop->text() == "l>")
+    {
+        callback->resume();
+        ui->but_stop->setText("ll");
+        QIcon stopIcon(":/stop.png");
+        ui->but_stop->setIcon(stopIcon);
+    }
+}
+
+// 保存图片
+void MainWindow::on_but_save_clicked()
+{
+    QString failpath = ui->le_message->text();
+    QDir dir;
+    if(failpath == "默认路径"){
+        failpath = QDir::currentPath() + "/save_images";
+    }else{
+        failpath = failpath + "/save_images";
+    }dir.mkpath(failpath);
+
+    // 获取当前时间
+    QDateTime currentDateTime = QDateTime::currentDateTime();
+    QString time = currentDateTime.toString("yyyyMMddhhmmss");
+    // 保存图片
+    QString fileName = failpath + QDir::separator() + time + ".jpg";
+    const QPixmap *pixmapPtr = ui->lb_camera->pixmap();
+    if (pixmapPtr) {
+        QPixmap pixmap = *pixmapPtr;
+        pixmap.save(fileName, "JPG");
+    } else {
+        QMessageBox::warning(this, tr("Save Image"), tr("No image to save."));
+    }
+    readSaveImages();
+}
+
+// 打开图片文件夹
+void MainWindow::on_but_open_clicked()
+{
+    QString failpath = ui->le_message->text();
+    QDir dir;
+    if(failpath == "默认路径"){
+        failpath = QDir::currentPath() + "/save_images";
+    }else{
+        failpath = failpath + "/save_images";
+    }dir.mkpath(failpath);
+    // 打开系统资源管理器并导航到指定的路径
+    if (!QFileInfo::exists(failpath)) {
+        QMessageBox::warning(this, tr("Error"), tr("The specified path does not exist."));
+        return;
+    }
+    QUrl url = QUrl::fromLocalFile(failpath);
+    bool ret = QDesktopServices::openUrl(url);
+    if (!ret) {
+        MYLOG << "Unable to open the system explorer.";
+    }
+}
+void MainWindow::on_but_history_clicked()
+{
+    readSaveImages();
+    if(ui->widget_3->isVisible())
+    {
+        ui->widget_3->hide();
+        ui->but_history->setText("历史记录：显示");
+    }else{
+        ui->widget_3->show();
+        ui->but_history->setText("历史记录：隐藏");
+    }
+
+}
+
+// 读取保存的图片放置到label上
+void MainWindow::readSaveImages()
+{
+    ui->lb_history1->clear();
+    ui->lb_history2->clear();
+    ui->lb_history3->clear();
+    ui->lb_history4->clear();
+    ui->lb_history5->clear();
+    ui->lb_history6->clear();
+    ui->lb_history7->clear();
+    ui->lb_history8->clear();
+
+    // 获取用户输入的路径或使用默认路径
+    QString failpath = ui->le_message->text().trimmed();
+    if (failpath.isEmpty() || failpath == "默认路径") {
+        failpath = QDir::currentPath() + "/save_images/";
+    } else {
+        failpath += "/save_images/";
+    }
+    QDir dir(failpath);
+    dir.mkpath(failpath); // 创建文件夹，如果它不存在
+
+    // 设置目录过滤器，仅选择文件
+    dir.setFilter(QDir::Files);
+    // 设置排序方式为按名称排序
+    dir.setSorting(QDir::Name);
+
+    QFileInfoList fileInfoList = dir.entryInfoList();
+    // MYLOG << "fileInfoList size: " << fileInfoList.size();
+
+    for (int i = 0; i < qMin(8, fileInfoList.size()); ++i) {// 读取前5张图片
+        // MYLOG << "fileInfoList[" << i << "]: " << fileInfoList.at(i).absoluteFilePath();
+        QFileInfo fileInfo = fileInfoList.at(fileInfoList.size()-i-1);
+        QString fileName = fileInfo.absoluteFilePath();
+        QPixmap pixmap(fileName);
+        if (!pixmap.isNull()) {
+            // 选择合适的QLabel控件
+            QLabel *label = nullptr;
+            switch (i) {
+                case 0: label = ui->lb_history1; break;
+                case 1: label = ui->lb_history2; break;
+                case 2: label = ui->lb_history3; break;
+                case 3: label = ui->lb_history4; break;
+                case 4: label = ui->lb_history5; break;
+                case 5: label = ui->lb_history6; break;
+                case 6: label = ui->lb_history7; break;
+                case 7: label = ui->lb_history8; break;
+                default: continue; // 如果文件超过5张，则继续循环
+            }
+            if (label) {
+                // 设置图片到QLabel
+                label->setPixmap(pixmap.scaled(label->size(), Qt::KeepAspectRatio));
+            }
+        }
+    }
+}
+// 录入人脸信息
+void MainWindow::on_but_enterface_clicked()
+{
+    ui_enterface = new enterface(nullptr, yolo, facenet, database);
+    ui_enterface->setCallback([this]() {
+        if (callback) {
+            callback->resume();
+        }
+    });
+
+    // 这里的yolo就会有isLoaded
+    if(!yolo->isLoaded){// 模型未加载
+        QMessageBox::warning(this, tr("Model error:"), 
+            tr("Model not found or loaded failed. \n Please enter the button to load the model and try again."));
+        MYLOG << "Fail to load model";
+        return;
+    } else {
+        callback->pasue();
+        ui_enterface->setWindowModality(Qt::ApplicationModal);
+        ui_enterface->show();
+        MYLOG << "Model loaded successfully";
+    }
+}
+void MainWindow::on_but_message_clicked()
+{
+    // 打开文件对话框
+    QString fileName = QFileDialog::getExistingDirectory(
+        this,                           // 父窗口
+        tr("Message path"),           // 对话框标题
+        ui->le_message->text().trimmed() // 默认路径
+    );
+    // 检查用户是否选择了路径
+    if (!fileName.isEmpty()) {
+        ui->le_message->setText(fileName);
+    } else {
+        // 如果用户没有选择路径，可以处理这种情况
+        QMessageBox::warning(this, tr("No Path Selected"), tr("No path was selected."));
+    }
+}
+
 
 // ---------------- HJJ --------------- //
 void MainWindow::on_but_sure_clicked()
 {
+    static int count = 0;
+    try { // 加载facenet模型
+        bool ret = facenet->loadModel(ui->le_facenetonnx->text());// 加载facenet模型
+        if (!ret)
+        {
+            std::cerr << "model path is empty!" << std::endl;
+            return;
+        }
+    }
+    catch(const Ort::Exception& e)
+    {
+        QMessageBox::critical(nullptr, "Facenet error", e.what());
+        return;
+    }
 	std::string rtsp_url = ui->le_rtsp->text().toStdString();
-	std::string modelPath = ui->le_onnx->text().toStdString();
-	int ret = callback->ensureEnter(rtsp_url, modelPath);
+	std::string modelPath = ui->le_onnx->text().toStdString(); // yolo 模型路径
+	int ret = callback->ensureEnter(modelPath, rtsp_url);
 	if(ret < 0){
+        QMessageBox::critical(this, tr("Init error:"), tr("Fail to configure"));
         MYLOG << "Slot error: ";
 		MYLOG << "Fail to created thread";
-	}
-	ui->stackedWidget->setCurrentWidget(ui->page_2);
+	} else {
+        QMessageBox::information(this, tr("Init success:"), tr("Successfully configured"));
+        isplay = false;
+    }
+    // 数据库配置
+    if(count == 0){
+        std::unordered_map<std::string, std::string> info = conf->getDatabaseConfig();
+        dbInfo.host = info["host"];
+        std::istringstream ss(info["port"]);
+        ss >> dbInfo.port;
+        dbInfo.user = info["userName"];
+        dbInfo.password = info["password"];
+        dbInfo.database = "FaceDB";
+        ui->FacedbWidget->setDBInfo(&dbInfo);
+        count++;
+    }
 }
 
+// 选择YOLO模型文件
 void MainWindow::on_but_onnx_clicked()
 {
 	// 打开文件对话框
 	QString fileName = QFileDialog::getOpenFileName(
 		this,                           // 父窗口
-		tr("Open ONNX File"),           // 对话框标题
-		"../../",                             // 默认路径
+		tr("Yolo model file"),           // 对话框标题
+		yoloLastPath.isEmpty() ? ":/" : yoloLastPath, // 默认路径
 		tr("ONNX Files (*.onnx);;All Files (*)") // 文件过滤器
 	);
 	// 检查用户是否选择了文件
 	if (!fileName.isEmpty()) {
 		ui->le_onnx->setText(fileName);
+        saveLastPath("/yolo_path.txt", fileName);
 	} else {
 		// 如果用户没有选择文件，可以处理这种情况
 		QMessageBox::warning(this, tr("No File Selected"), tr("No ONNX file was selected."));
@@ -998,10 +1474,32 @@ void MainWindow::on_but_onnx_clicked()
 }
 
 
-void MainWindow::on_but_storagefile_clicked()
+// 选择facenet模型文件
+void MainWindow::on_but_facenetonnx_clicked()
 {
     // 打开文件对话框
-    Configure conf;
-    conf.databaseConfigure();
+	QString fileName = QFileDialog::getOpenFileName(
+		this,                           // 父窗口
+		tr("Facenet model file"),           // 对话框标题
+		facenetLastPath.isEmpty() ? ":/UI/Resources" : facenetLastPath, // 默认路径
+		tr("ONNX Files (*.onnx);;All Files (*)") // 文件过滤器
+	);
+	// 检查用户是否选择了文件
+	if (!fileName.isEmpty()) {
+		ui->le_facenetonnx->setText(fileName);
+        saveLastPath("/facenet_path.txt", fileName);
+	} else {
+		// 如果用户没有选择文件，可以处理这种情况
+		QMessageBox::warning(this, tr("No File Selected"), tr("No ONNX file was selected."));
+	}
 }
+
+// 数据库配置
+void MainWindow::on_but_storagefile_clicked()
+{
+    // 打开悬浮框
+    conf->databaseConfigure();
+}
+
+
 
