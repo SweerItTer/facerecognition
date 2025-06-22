@@ -234,3 +234,7 @@ deploy.bat
 - [ ] 实现跨平台支持
 - [ ] 优化检测和识别速度
 - [ ] 增加更多配置选项
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=SweerItTer/facerecognition&type=Date)](https://www.star-history.com/#SweerItTer/facerecognition&Date)
